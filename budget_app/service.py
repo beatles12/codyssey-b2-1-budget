@@ -13,8 +13,8 @@ from budget_app.repository import (
 # [1] 거래 서비스 클래스
 # ==========================================================
 # 역할:
-# - 거래 추가, 조회, 삭제 등 거래 업무 규칙을 처리함
-# - 잘못된 입력을 검사함
+# - 거래 추가, 조회, 수정, 삭제 업무를 처리함
+# - 잘못된 입력값을 검사함
 # - 실제 파일 작업은 Repository에 맡김
 # ==========================================================
 
@@ -155,16 +155,120 @@ class TransactionService:
 
 
     # ======================================================
-    # [5] 거래 삭제
+    # [5] 거래 수정
     # ======================================================
-    # 사용자가 입력한 id가 실제로 존재하는지 먼저 확인함
+    # 기존 거래를 id로 찾은 뒤
+    # 새 값이 들어온 항목만 바꿈
     #
-    # 존재함:
-    # - Repository에 삭제 요청
+    # None이 들어온 항목은 기존 값을 그대로 유지함
     #
-    # 존재하지 않음:
-    # - ValueError를 발생시켜
-    #   나중에 CLI에서 이해하기 쉬운 메시지로 보여줌
+    # 예:
+    # amount만 20000으로 전달
+    # → 날짜, 타입, 카테고리 등은 그대로
+    # → 금액만 20000으로 변경
+    # ======================================================
+
+    def update_transaction(
+        self,
+        transaction_id: str,
+        transaction_type: str | None = None,
+        date: str | None = None,
+        amount: int | None = None,
+        category: str | None = None,
+        memo: str | None = None,
+        tags: list[str] | None = None,
+    ) -> Transaction:
+
+        transaction_id = (
+            transaction_id.strip()
+        )
+
+        if not transaction_id:
+            raise ValueError(
+                "거래 id를 입력해야 합니다."
+            )
+
+        # 기존 거래 찾기
+        current = self.repository.find_by_id(
+            transaction_id
+        )
+
+        if current is None:
+            raise ValueError(
+                "해당 id의 거래를 찾을 수 없습니다."
+            )
+
+        # 새 값이 없으면 기존 값 유지
+        new_type = (
+            transaction_type
+            if transaction_type is not None
+            else current.type
+        )
+
+        new_date = (
+            date
+            if date is not None
+            else current.date
+        )
+
+        new_amount = (
+            amount
+            if amount is not None
+            else current.amount
+        )
+
+        new_category = (
+            category
+            if category is not None
+            else current.category
+        )
+
+        new_memo = (
+            memo
+            if memo is not None
+            else current.memo
+        )
+
+        new_tags = (
+            tags
+            if tags is not None
+            else current.tags
+        )
+
+        # 수정 후 최종 값도 다시 검증
+        self._validate_transaction_input(
+            new_type,
+            new_date,
+            new_amount,
+            new_category,
+        )
+
+        # id는 기존 id를 그대로 사용
+        updated_transaction = Transaction(
+            id=current.id,
+            type=new_type,
+            date=new_date,
+            amount=new_amount,
+            category=new_category,
+            memo=new_memo,
+            tags=new_tags,
+        )
+
+        updated = self.repository.update_by_id(
+            transaction_id,
+            updated_transaction,
+        )
+
+        if not updated:
+            raise ValueError(
+                "거래 수정에 실패했습니다."
+            )
+
+        return updated_transaction
+
+
+    # ======================================================
+    # [6] 거래 삭제
     # ======================================================
 
     def delete_transaction(
@@ -176,13 +280,11 @@ class TransactionService:
             transaction_id.strip()
         )
 
-        # 빈 id는 허용하지 않음
         if not transaction_id:
             raise ValueError(
                 "거래 id를 입력해야 합니다."
             )
 
-        # 해당 id의 거래가 실제로 존재하는지 확인
         transaction = self.repository.find_by_id(
             transaction_id
         )
@@ -192,7 +294,6 @@ class TransactionService:
                 "해당 id의 거래를 찾을 수 없습니다."
             )
 
-        # 존재하는 거래이면 Repository에 삭제 요청
         deleted = self.repository.delete_by_id(
             transaction_id
         )
@@ -204,18 +305,18 @@ class TransactionService:
 
 
 # ==========================================================
-# [6] 카테고리 서비스 클래스
+# [7] 카테고리 서비스 클래스
 # ==========================================================
 # 역할:
 # - 카테고리 추가 / 조회 / 삭제 업무를 처리함
 # - 중복 카테고리를 막음
-# - 실제 거래에서 사용 중인 카테고리는 삭제하지 못하게 함
+# - 사용 중인 카테고리는 삭제하지 못하게 함
 # ==========================================================
 
 class CategoryService:
 
     # ======================================================
-    # [6-1] 카테고리 서비스 초기화
+    # [7-1] 카테고리 서비스 초기화
     # ======================================================
 
     def __init__(
@@ -234,7 +335,7 @@ class CategoryService:
 
 
     # ======================================================
-    # [7] 카테고리 목록 조회
+    # [8] 카테고리 목록 조회
     # ======================================================
 
     def list_categories(
@@ -247,7 +348,7 @@ class CategoryService:
 
 
     # ======================================================
-    # [8] 새 카테고리 추가
+    # [9] 새 카테고리 추가
     # ======================================================
 
     def add_category(
@@ -277,7 +378,7 @@ class CategoryService:
 
 
     # ======================================================
-    # [9] 카테고리 삭제
+    # [10] 카테고리 삭제
     # ======================================================
 
     def remove_category(
