@@ -150,15 +150,26 @@ def main() -> None:
 
 
     # ======================================================
-    # [7] category 명령어 등록
+    # [7] delete 명령어 등록
     # ======================================================
-    # category 안에 다시
-    # list / add / remove 명령어를 만듦
-    #
-    # 예:
-    # python -m budget_app category list
-    # python -m budget_app category add
-    # python -m budget_app category remove
+    # 실행 예:
+    # python -m budget_app delete --id 거래ID
+    # ======================================================
+
+    delete_parser = subparsers.add_parser(
+        "delete",
+        help="거래 삭제"
+    )
+
+    delete_parser.add_argument(
+        "--id",
+        required=True,
+        help="삭제할 거래 id"
+    )
+
+
+    # ======================================================
+    # [8] category 명령어 등록
     # ======================================================
 
     category_parser = subparsers.add_parser(
@@ -189,14 +200,14 @@ def main() -> None:
 
 
     # ======================================================
-    # [8] 사용자가 입력한 명령어 읽기
+    # [9] 사용자가 입력한 명령어 읽기
     # ======================================================
 
     args = parser.parse_args()
 
 
     # ======================================================
-    # [9] Repository와 Service 준비
+    # [10] Repository와 Service 준비
     # ======================================================
 
     transaction_repository = (
@@ -222,7 +233,7 @@ def main() -> None:
 
 
     # ======================================================
-    # [10] add 명령어 실행
+    # [11] add 명령어 실행
     # ======================================================
 
     if args.command == "add":
@@ -300,7 +311,10 @@ def main() -> None:
 
 
     # ======================================================
-    # [11] list 명령어 실행
+    # [12] list 명령어 실행
+    # ======================================================
+    # 거래 내용과 함께 id도 표시함
+    # delete / update에서 이 id를 사용함
     # ======================================================
 
     if args.command == "list":
@@ -329,9 +343,13 @@ def main() -> None:
 
             return
 
-        for transaction in transactions:
+        for number, transaction in enumerate(
+            transactions,
+            start=1
+        ):
 
             print(
+                f"\n[{number}] "
                 f"{transaction.date} | "
                 f"{transaction.type} | "
                 f"{transaction.category} | "
@@ -339,11 +357,58 @@ def main() -> None:
                 f"{transaction.memo}"
             )
 
+            print(
+                f"    id: {transaction.id}"
+            )
+
         return
 
 
     # ======================================================
-    # [12] category 명령어 실행
+    # [13] delete 명령어 실행
+    # ======================================================
+    # --id로 받은 거래 id를 삭제함
+    # 실제 삭제 전에 한 번 더 사용자에게 확인함
+    # ======================================================
+
+    if args.command == "delete":
+
+        answer = input(
+            f"id={args.id}\n"
+            "이 거래를 삭제할까요? (y/N): "
+        ).strip().lower()
+
+        if answer != "y":
+
+            print(
+                "삭제를 취소했습니다."
+            )
+
+            return
+
+        try:
+
+            transaction_service.delete_transaction(
+                args.id
+            )
+
+            print(
+                "[삭제 완료]"
+            )
+
+        except ValueError as error:
+
+            print(
+                f"[삭제 오류] {error}"
+            )
+
+            raise SystemExit(1)
+
+        return
+
+
+    # ======================================================
+    # [14] category 명령어 실행
     # ======================================================
 
     if args.command == "category":
@@ -416,7 +481,6 @@ def main() -> None:
                 f"'{category_name}'을 삭제할까요? (y/N): "
             ).strip().lower()
 
-            # y가 아니면 삭제하지 않음
             if answer != "y":
 
                 print(
@@ -446,13 +510,12 @@ def main() -> None:
             return
 
 
-        # category 뒤에 아무 명령도 없으면 도움말
         category_parser.print_help()
         return
 
 
     # ======================================================
-    # [13] 명령어가 없으면 도움말 출력
+    # [15] 명령어가 없으면 도움말 출력
     # ======================================================
 
     parser.print_help()

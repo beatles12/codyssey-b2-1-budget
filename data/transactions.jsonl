@@ -1,5 +1,4 @@
 {"id": "T001", "type": "expense", "date": "2026-09-11", "amount": 15000, "category": "food", "memo": "lunch", "tags": []}
 {"id": "a1682550-3e0c-48e7-9bb5-7346720f8f24", "type": "expense", "date": "2026-09-14", "amount": 5000, "category": "coffee", "memo": "아메리카노", "tags": []}
 {"id": "d4b41b8a-b96f-4f29-824a-91ce212d7b45", "type": "expense", "date": "2026-09-14", "amount": 12000, "category": "food", "memo": "저녁식사", "tags": ["meal", "dinner"]}
-{"id": "78e26565-3433-4d51-be91-1de4851c77e0", "type": "expense", "date": "2026-09-14", "amount": 8000, "category": "food", "memo": "간식", "tags": []}
 {"id": "4687725b-bb56-4ba8-b346-604f678fcfac", "type": "expense", "date": "2026-09-14", "amount": 7000, "category": "food", "memo": "", "tags": []}
