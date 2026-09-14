@@ -11,7 +11,7 @@ from budget_app.models import Transaction
 # ==========================================================
 # 역할:
 # - 거래 데이터를 JSONL 파일에 저장하고 다시 불러옴
-# - 거래 수정과 삭제처럼 파일 내용을 바꾸는 작업도 담당함
+# - 거래 수정과 삭제도 담당함
 # ==========================================================
 
 class TransactionRepository:
@@ -57,10 +57,7 @@ class TransactionRepository:
 
 
     # ======================================================
-    # [3] 저장된 거래 한 건씩 읽기
-    # ======================================================
-    # yield를 이용해 파일 전체를 한꺼번에 읽지 않고
-    # 거래를 한 건씩 반환함
+    # [3] 거래 한 건씩 읽기
     # ======================================================
 
     def iter_transactions(
@@ -94,10 +91,7 @@ class TransactionRepository:
 
 
     # ======================================================
-    # [4] ID로 거래 한 건 찾기
-    # ======================================================
-    # 찾으면 Transaction 객체 반환
-    # 없으면 None 반환
+    # [4] ID로 거래 찾기
     # ======================================================
 
     def find_by_id(
@@ -115,15 +109,6 @@ class TransactionRepository:
 
     # ======================================================
     # [5] ID로 거래 수정
-    # ======================================================
-    # JSONL 파일 중간의 한 줄만 직접 바꾸지 않고
-    # 임시 파일을 만들어 안전하게 전체를 다시 작성함
-    #
-    # 수정 대상 id를 만나면
-    # 기존 거래 대신 updated_transaction을 저장함
-    #
-    # 수정 성공 = True
-    # 없는 id   = False
     # ======================================================
 
     def update_by_id(
@@ -145,7 +130,6 @@ class TransactionRepository:
 
             for transaction in self.iter_transactions():
 
-                # 수정할 거래를 발견한 경우
                 if transaction.id == transaction_id:
 
                     json.dump(
@@ -159,7 +143,6 @@ class TransactionRepository:
                     found = True
                     continue
 
-                # 수정 대상이 아닌 거래는 그대로 다시 저장
                 json.dump(
                     asdict(transaction),
                     temp_file,
@@ -168,8 +151,6 @@ class TransactionRepository:
 
                 temp_file.write("\n")
 
-        # 수정할 거래가 존재했다면
-        # 완성된 임시 파일로 원본 파일 교체
         if found:
 
             temp_path.replace(
@@ -178,8 +159,6 @@ class TransactionRepository:
 
             return True
 
-        # 없는 id라면 원본은 그대로 두고
-        # 임시 파일만 삭제
         temp_path.unlink(
             missing_ok=True
         )
@@ -189,12 +168,6 @@ class TransactionRepository:
 
     # ======================================================
     # [6] ID로 거래 삭제
-    # ======================================================
-    # 삭제할 거래만 제외하고 임시 파일에 다시 저장한 뒤
-    # 기존 파일과 교체함
-    #
-    # 삭제 성공 = True
-    # 없는 id   = False
     # ======================================================
 
     def delete_by_id(
@@ -289,7 +262,7 @@ class CategoryRepository:
 
 
     # ======================================================
-    # [8] 기본 카테고리 자동 생성
+    # [8] 기본 카테고리 생성
     # ======================================================
 
     def _create_default_categories(
@@ -416,3 +389,163 @@ class CategoryRepository:
                 file.write("\n")
 
         return True
+
+
+# ==========================================================
+# [13] 예산 저장소 클래스
+# ==========================================================
+# 역할:
+# - 월별 예산을 JSONL 파일에 영구 저장함
+# - 기본 저장 파일은 data/budgets.jsonl
+#
+# 예:
+# {"month": "2026-09", "amount": 500000}
+# ==========================================================
+
+class BudgetRepository:
+
+    # ======================================================
+    # [13-1] 예산 저장소 초기화
+    # ======================================================
+
+    def __init__(
+        self,
+        file_path: str = "data/budgets.jsonl"
+    ) -> None:
+
+        self.file_path = Path(file_path)
+
+        self.file_path.parent.mkdir(
+            parents=True,
+            exist_ok=True
+        )
+
+
+    # ======================================================
+    # [14] 저장된 예산 한 건씩 읽기
+    # ======================================================
+
+    def iter_budgets(
+        self
+    ) -> Iterator[dict]:
+
+        if not self.file_path.exists():
+            return
+
+        with self.file_path.open(
+            "r",
+            encoding="utf-8"
+        ) as file:
+
+            for line in file:
+
+                if not line.strip():
+                    continue
+
+                yield json.loads(
+                    line
+                )
+
+
+    # ======================================================
+    # [15] 특정 월의 예산 조회
+    # ======================================================
+    # 해당 월의 예산이 있으면 금액을 반환함
+    # 없으면 None 반환
+    # ======================================================
+
+    def get_budget(
+        self,
+        month: str
+    ) -> int | None:
+
+        for budget in self.iter_budgets():
+
+            if budget["month"] == month:
+
+                return budget["amount"]
+
+        return None
+
+
+    # ======================================================
+    # [16] 월별 예산 저장 또는 수정
+    # ======================================================
+    # 같은 월의 예산이 이미 있으면 금액을 수정함
+    # 없는 월이면 새 예산을 추가함
+    #
+    # 예:
+    # 2026-09 = 500000 저장
+    #
+    # 다시
+    # 2026-09 = 600000 저장
+    #
+    # → 두 줄이 생기는 것이 아니라
+    #   기존 2026-09 예산을 600000으로 교체함
+    # ======================================================
+
+    def set_budget(
+        self,
+        month: str,
+        amount: int,
+    ) -> None:
+
+        temp_path = self.file_path.with_suffix(
+            ".tmp"
+        )
+
+        found = False
+
+        with temp_path.open(
+            "w",
+            encoding="utf-8"
+        ) as temp_file:
+
+            for budget in self.iter_budgets():
+
+                # 같은 월을 발견하면 새 금액으로 교체
+                if budget["month"] == month:
+
+                    json.dump(
+                        {
+                            "month": month,
+                            "amount": amount,
+                        },
+                        temp_file,
+                        ensure_ascii=False
+                    )
+
+                    temp_file.write("\n")
+
+                    found = True
+                    continue
+
+                # 다른 월의 예산은 그대로 저장
+                json.dump(
+                    budget,
+                    temp_file,
+                    ensure_ascii=False
+                )
+
+                temp_file.write("\n")
+
+
+            # 같은 월의 예산이 없었다면 새로 추가
+            if not found:
+
+                json.dump(
+                    {
+                        "month": month,
+                        "amount": amount,
+                    },
+                    temp_file,
+                    ensure_ascii=False
+                )
+
+                temp_file.write("\n")
+
+
+        # 완성된 임시 파일을 budgets.jsonl로 교체
+        temp_path.replace(
+            self.file_path
+        )

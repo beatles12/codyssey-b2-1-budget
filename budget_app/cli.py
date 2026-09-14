@@ -2,10 +2,12 @@ import argparse
 from datetime import datetime
 
 from budget_app.repository import (
+    BudgetRepository,
     CategoryRepository,
     TransactionRepository,
 )
 from budget_app.service import (
+    BudgetService,
     CategoryService,
     TransactionService,
 )
@@ -189,7 +191,7 @@ def choose_category_for_update(
 
 
 # ==========================================================
-# [6] 명령어 프로그램(CLI) 시작
+# [6] CLI 시작
 # ==========================================================
 
 def main() -> None:
@@ -204,7 +206,7 @@ def main() -> None:
 
 
     # ======================================================
-    # [7] add 명령어 등록
+    # [7] add
     # ======================================================
 
     subparsers.add_parser(
@@ -214,7 +216,7 @@ def main() -> None:
 
 
     # ======================================================
-    # [8] list 명령어 등록
+    # [8] list
     # ======================================================
 
     list_parser = subparsers.add_parser(
@@ -226,12 +228,12 @@ def main() -> None:
         "--limit",
         type=int,
         default=20,
-        help="출력할 최대 거래 수 (기본값: 20)"
+        help="출력할 최대 거래 수"
     )
 
 
     # ======================================================
-    # [9] search 명령어 등록
+    # [9] search
     # ======================================================
 
     search_parser = subparsers.add_parser(
@@ -241,83 +243,70 @@ def main() -> None:
 
     search_parser.add_argument(
         "--from",
-        dest="date_from",
-        help="검색 시작 날짜 (YYYY-MM-DD)"
+        dest="date_from"
     )
 
     search_parser.add_argument(
         "--to",
-        dest="date_to",
-        help="검색 끝 날짜 (YYYY-MM-DD)"
+        dest="date_to"
     )
 
     search_parser.add_argument(
-        "--category",
-        help="카테고리"
+        "--category"
     )
 
     search_parser.add_argument(
         "--type",
-        dest="transaction_type",
-        help="income 또는 expense"
+        dest="transaction_type"
     )
 
     search_parser.add_argument(
-        "--q",
-        help="메모 검색어"
+        "--q"
     )
 
     search_parser.add_argument(
-        "--tag",
-        help="태그"
+        "--tag"
     )
 
 
     # ======================================================
-    # [10] summary 명령어 등록
-    # ======================================================
-    # 실행 예:
-    # python -m budget_app summary --month 2026-09
-    # python -m budget_app summary --month 2026-09 --top 3
+    # [10] summary
     # ======================================================
 
     summary_parser = subparsers.add_parser(
         "summary",
-        help="월별 수입/지출 요약"
+        help="월별 요약"
     )
 
     summary_parser.add_argument(
         "--month",
-        required=True,
-        help="요약할 월 (YYYY-MM)"
+        required=True
     )
 
     summary_parser.add_argument(
         "--top",
         type=int,
-        default=3,
-        help="지출 상위 카테고리 개수 (기본값: 3)"
+        default=3
     )
 
 
     # ======================================================
-    # [11] update 명령어 등록
+    # [11] update
     # ======================================================
 
     update_parser = subparsers.add_parser(
         "update",
-        help="기존 거래 수정"
+        help="거래 수정"
     )
 
     update_parser.add_argument(
         "--id",
-        required=True,
-        help="수정할 거래 id"
+        required=True
     )
 
 
     # ======================================================
-    # [12] delete 명령어 등록
+    # [12] delete
     # ======================================================
 
     delete_parser = subparsers.add_parser(
@@ -327,13 +316,12 @@ def main() -> None:
 
     delete_parser.add_argument(
         "--id",
-        required=True,
-        help="삭제할 거래 id"
+        required=True
     )
 
 
     # ======================================================
-    # [13] category 명령어 등록
+    # [13] category
     # ======================================================
 
     category_parser = subparsers.add_parser(
@@ -348,30 +336,77 @@ def main() -> None:
     )
 
     category_subparsers.add_parser(
-        "list",
-        help="카테고리 목록 조회"
+        "list"
     )
 
     category_subparsers.add_parser(
-        "add",
-        help="새 카테고리 추가"
+        "add"
     )
 
     category_subparsers.add_parser(
-        "remove",
-        help="카테고리 삭제"
+        "remove"
     )
 
 
     # ======================================================
-    # [14] 사용자가 입력한 명령어 읽기
+    # [14] budget
+    # ======================================================
+    # 예:
+    # python -m budget_app budget set --month 2026-09 --amount 600000
+    # python -m budget_app budget get --month 2026-09
+    # ======================================================
+
+    budget_parser = subparsers.add_parser(
+        "budget",
+        help="월별 예산 관리"
+    )
+
+    budget_subparsers = (
+        budget_parser.add_subparsers(
+            dest="budget_command"
+        )
+    )
+
+    budget_set_parser = (
+        budget_subparsers.add_parser(
+            "set",
+            help="월별 예산 저장"
+        )
+    )
+
+    budget_set_parser.add_argument(
+        "--month",
+        required=True
+    )
+
+    budget_set_parser.add_argument(
+        "--amount",
+        type=int,
+        required=True
+    )
+
+    budget_get_parser = (
+        budget_subparsers.add_parser(
+            "get",
+            help="월별 예산 조회"
+        )
+    )
+
+    budget_get_parser.add_argument(
+        "--month",
+        required=True
+    )
+
+
+    # ======================================================
+    # [15] 명령어 읽기
     # ======================================================
 
     args = parser.parse_args()
 
 
     # ======================================================
-    # [15] Repository와 Service 준비
+    # [16] Repository / Service 준비
     # ======================================================
 
     transaction_repository = (
@@ -380,6 +415,10 @@ def main() -> None:
 
     category_repository = (
         CategoryRepository()
+    )
+
+    budget_repository = (
+        BudgetRepository()
     )
 
     transaction_service = (
@@ -395,9 +434,15 @@ def main() -> None:
         )
     )
 
+    budget_service = (
+        BudgetService(
+            budget_repository
+        )
+    )
+
 
     # ======================================================
-    # [16] add 명령어 실행
+    # [17] add 실행
     # ======================================================
 
     if args.command == "add":
@@ -435,15 +480,12 @@ def main() -> None:
             ).strip()
 
             if tags_text:
-
                 tags = [
                     tag.strip()
                     for tag in tags_text.split(",")
                     if tag.strip()
                 ]
-
             else:
-
                 tags = []
 
             transaction = (
@@ -458,13 +500,13 @@ def main() -> None:
             )
 
             print(
-                f"\n[저장 완료] id={transaction.id}"
+                f"[저장 완료] id={transaction.id}"
             )
 
         except ValueError as error:
 
             print(
-                f"\n[입력 오류] {error}"
+                f"[입력 오류] {error}"
             )
 
             raise SystemExit(1)
@@ -473,7 +515,7 @@ def main() -> None:
 
 
     # ======================================================
-    # [17] list 명령어 실행
+    # [18] list 실행
     # ======================================================
 
     if args.command == "list":
@@ -495,7 +537,6 @@ def main() -> None:
             raise SystemExit(1)
 
         if not transactions:
-
             print(
                 "저장된 거래가 없습니다."
             )
@@ -523,7 +564,7 @@ def main() -> None:
 
 
     # ======================================================
-    # [18] search 명령어 실행
+    # [19] search 실행
     # ======================================================
 
     if args.command == "search":
@@ -576,7 +617,6 @@ def main() -> None:
             raise SystemExit(1)
 
         if not found:
-
             print(
                 "검색 결과가 없습니다."
             )
@@ -585,10 +625,11 @@ def main() -> None:
 
 
     # ======================================================
-    # [19] summary 명령어 실행
+    # [20] summary 실행
     # ======================================================
-    # 해당 월의 수입, 지출, 잔액을 출력하고
-    # 카테고리별 지출 상위 N개를 보여줌
+    # 월별 수입 / 지출 / 잔액을 보여주고
+    # 예산이 설정되어 있으면
+    # 예산 사용률과 초과 여부도 함께 보여줌
     # ======================================================
 
     if args.command == "summary":
@@ -597,8 +638,15 @@ def main() -> None:
 
             summary = (
                 transaction_service.summarize_month(
-                    month=args.month,
-                    top=args.top,
+                    args.month,
+                    args.top,
+                )
+            )
+
+            budget_status = (
+                budget_service.get_budget_status(
+                    args.month,
+                    summary["total_expense"],
                 )
             )
 
@@ -611,7 +659,7 @@ def main() -> None:
             raise SystemExit(1)
 
 
-        # 해당 월에 거래가 하나도 없는 경우
+        # 거래가 하나도 없는 경우
         if summary["transaction_count"] == 0:
 
             print(
@@ -619,7 +667,11 @@ def main() -> None:
             )
 
             return
+        
 
+        # ----------------------------------------------
+        # 월별 거래 요약
+        # ----------------------------------------------
 
         print(
             f"\n[월별 요약] {summary['month']}"
@@ -645,6 +697,10 @@ def main() -> None:
             f"{summary['balance']:,}원"
         )
 
+
+        # ----------------------------------------------
+        # 지출 카테고리 TOP N
+        # ----------------------------------------------
 
         print(
             f"\n[지출 카테고리 TOP {args.top}]"
@@ -672,11 +728,66 @@ def main() -> None:
                     f"{amount:,}원"
                 )
 
-        return
+
+        # ----------------------------------------------
+        # 예산 현황
+        # ----------------------------------------------
+
+        if budget_status is None:
+
+            print(
+                "\n[예산 현황]"
+            )
+
+            print(
+                "설정된 예산이 없습니다."
+            )
+
+        else:
+
+            print(
+                "\n[예산 현황]"
+            )
+
+            print(
+                f"월 예산: "
+                f"{budget_status['budget']:,}원"
+            )
+
+            print(
+                f"사용액: "
+                f"{budget_status['spent']:,}원"
+            )
+
+            print(
+                f"예산 사용률: "
+                f"{budget_status['usage_rate']:.1f}%"
+            )
+
+
+            if budget_status["exceeded"]:
+
+                exceeded_amount = abs(
+                    budget_status["remaining"]
+                )
+
+                print(
+                    f"예산 초과: "
+                    f"{exceeded_amount:,}원"
+                )
+
+            else:
+
+                print(
+                    f"남은 예산: "
+                    f"{budget_status['remaining']:,}원"
+                )
+
+        return       
 
 
     # ======================================================
-    # [20] update 명령어 실행
+    # [21] update 실행
     # ======================================================
 
     if args.command == "update":
@@ -700,10 +811,6 @@ def main() -> None:
         print(f"금액: {current.amount:,}원")
         print(f"메모: {current.memo}")
         print(f"태그: {', '.join(current.tags)}")
-
-        print(
-            "\n바꾸지 않을 항목은 Enter를 누르세요."
-        )
 
         date_text = input(
             f"새 날짜 [{current.date}]: "
@@ -732,21 +839,11 @@ def main() -> None:
             f"새 금액 [{current.amount}]: "
         ).strip()
 
-        try:
-
-            new_amount = (
-                int(amount_text)
-                if amount_text
-                else None
-            )
-
-        except ValueError:
-
-            print(
-                "[수정 오류] 금액은 숫자로 입력해야 합니다."
-            )
-
-            raise SystemExit(1)
+        new_amount = (
+            int(amount_text)
+            if amount_text
+            else None
+        )
 
         memo_text = input(
             f"새 메모 [{current.memo}]: "
@@ -762,40 +859,33 @@ def main() -> None:
             "새 태그(쉼표 구분 / Enter=기존 유지): "
         ).strip()
 
-        if tags_text:
-
-            new_tags = [
+        new_tags = (
+            [
                 tag.strip()
                 for tag in tags_text.split(",")
                 if tag.strip()
             ]
-
-        else:
-
-            new_tags = None
+            if tags_text
+            else None
+        )
 
         try:
 
             updated = (
                 transaction_service.update_transaction(
-                    transaction_id=args.id,
-                    transaction_type=new_type,
-                    date=new_date,
-                    amount=new_amount,
-                    category=new_category,
-                    memo=new_memo,
-                    tags=new_tags,
+                    args.id,
+                    new_type,
+                    new_date,
+                    new_amount,
+                    new_category,
+                    new_memo,
+                    new_tags,
                 )
             )
 
-            print("\n[수정 완료]")
-
             print(
-                f"{updated.date} | "
-                f"{updated.type} | "
-                f"{updated.category} | "
-                f"{updated.amount:,}원 | "
-                f"{updated.memo}"
+                f"[수정 완료] "
+                f"{updated.amount:,}원"
             )
 
         except ValueError as error:
@@ -810,18 +900,16 @@ def main() -> None:
 
 
     # ======================================================
-    # [21] delete 명령어 실행
+    # [22] delete 실행
     # ======================================================
 
     if args.command == "delete":
 
         answer = input(
-            f"id={args.id}\n"
             "이 거래를 삭제할까요? (y/N): "
         ).strip().lower()
 
         if answer != "y":
-
             print(
                 "삭제를 취소했습니다."
             )
@@ -849,21 +937,15 @@ def main() -> None:
 
 
     # ======================================================
-    # [22] category 명령어 실행
+    # [23] category 실행
     # ======================================================
 
     if args.command == "category":
 
         if args.category_command == "list":
 
-            categories = (
-                category_service.list_categories()
-            )
-
-            print("\n[카테고리 목록]")
-
             for number, category in enumerate(
-                categories,
+                category_service.list_categories(),
                 start=1
             ):
                 print(
@@ -871,7 +953,6 @@ def main() -> None:
                 )
 
             return
-
 
         if args.category_command == "add":
 
@@ -899,23 +980,11 @@ def main() -> None:
 
             return
 
-
         if args.category_command == "remove":
 
             category_name = choose_category(
                 category_repository
             )
-
-            answer = input(
-                f"'{category_name}'을 삭제할까요? (y/N): "
-            ).strip().lower()
-
-            if answer != "y":
-
-                print(
-                    "삭제를 취소했습니다."
-                )
-                return
 
             try:
 
@@ -942,7 +1011,82 @@ def main() -> None:
 
 
     # ======================================================
-    # [23] 명령어가 없으면 도움말 출력
+    # [24] budget 실행
+    # ======================================================
+
+    if args.command == "budget":
+
+        # ----------------------------------------------
+        # budget set
+        # ----------------------------------------------
+
+        if args.budget_command == "set":
+
+            try:
+
+                budget_service.set_budget(
+                    args.month,
+                    args.amount,
+                )
+
+                print(
+                    f"[예산 저장 완료] "
+                    f"{args.month} = "
+                    f"{args.amount:,}원"
+                )
+
+            except ValueError as error:
+
+                print(
+                    f"[예산 오류] {error}"
+                )
+
+                raise SystemExit(1)
+
+            return
+
+
+        # ----------------------------------------------
+        # budget get
+        # ----------------------------------------------
+
+        if args.budget_command == "get":
+
+            try:
+
+                amount = budget_service.get_budget(
+                    args.month
+                )
+
+            except ValueError as error:
+
+                print(
+                    f"[예산 오류] {error}"
+                )
+
+                raise SystemExit(1)
+
+            if amount is None:
+
+                print(
+                    f"{args.month}: 설정된 예산 없음"
+                )
+
+            else:
+
+                print(
+                    f"{args.month} 예산: "
+                    f"{amount:,}원"
+                )
+
+            return
+
+        budget_parser.print_help()
+        return
+
+
+    # ======================================================
+    # [25] 명령어가 없으면 도움말
     # ======================================================
 
     parser.print_help()

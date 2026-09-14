@@ -5,6 +5,7 @@ from uuid import uuid4
 
 from budget_app.models import Transaction
 from budget_app.repository import (
+    BudgetRepository,
     CategoryRepository,
     TransactionRepository,
 )
@@ -98,12 +99,6 @@ class TransactionService:
 
     # ======================================================
     # [4] 월 형식 검증
-    # ======================================================
-    # summary에서 사용하는 YYYY-MM 형식을 검사함
-    #
-    # 예:
-    # 2026-09  → 정상
-    # 2026-13  → 오류
     # ======================================================
 
     def _validate_month(
@@ -298,12 +293,6 @@ class TransactionService:
     # ======================================================
     # [8] 월별 요약 계산
     # ======================================================
-    # 해당 월의 거래를 한 건씩 읽으면서
-    # 총수입, 총지출, 잔액을 계산함
-    #
-    # expense 거래는 카테고리별로 합산하고
-    # 금액이 큰 순서대로 TOP N을 만듦
-    # ======================================================
 
     def summarize_month(
         self,
@@ -311,7 +300,6 @@ class TransactionService:
         top: int = 3,
     ) -> dict:
 
-        # YYYY-MM 형식 검사
         self._validate_month(
             month
         )
@@ -325,15 +313,12 @@ class TransactionService:
         total_expense = 0
         transaction_count = 0
 
-        # 카테고리별 지출 금액 저장
         category_expenses = defaultdict(int)
 
-        # 파일을 한 건씩 읽으면서 계산
         for transaction in (
             self.repository.iter_transactions()
         ):
 
-            # 해당 월이 아니면 건너뜀
             if not transaction.date.startswith(
                 month
             ):
@@ -341,14 +326,12 @@ class TransactionService:
 
             transaction_count += 1
 
-            # 수입 합계
             if transaction.type == "income":
 
                 total_income += (
                     transaction.amount
                 )
 
-            # 지출 합계 + 카테고리별 합계
             elif transaction.type == "expense":
 
                 total_expense += (
@@ -359,23 +342,17 @@ class TransactionService:
                     transaction.category
                 ] += transaction.amount
 
-
-        # 수입 - 지출 = 잔액
         balance = (
             total_income
             - total_expense
         )
 
-
-        # 카테고리별 지출을 큰 금액 순으로 정렬
         top_categories = sorted(
             category_expenses.items(),
             key=lambda item: item[1],
             reverse=True,
         )[:top]
 
-
-        # 계산 결과를 하나의 딕셔너리로 반환
         return {
             "month": month,
             "transaction_count": transaction_count,
@@ -625,3 +602,167 @@ class CategoryService:
         self.category_repository.remove(
             category_name
         )
+
+
+# ==========================================================
+# [15] 예산 서비스 클래스
+# ==========================================================
+# 역할:
+# - 월별 예산의 입력값을 검사함
+# - BudgetRepository를 통해 예산을 저장하거나 조회함
+#
+# repository.py
+# = 파일에 저장하는 담당
+#
+# service.py
+# = 올바른 월/금액인지 판단하는 담당
+# ==========================================================
+
+class BudgetService:
+
+    # ======================================================
+    # [15-1] 예산 서비스 초기화
+    # ======================================================
+
+    def __init__(
+        self,
+        repository: BudgetRepository
+    ) -> None:
+
+        self.repository = repository
+
+
+    # ======================================================
+    # [16] 예산 입력값 검증
+    # ======================================================
+    # month:
+    # - YYYY-MM 형식
+    #
+    # amount:
+    # - 0보다 큰 양수만 허용
+    # ======================================================
+
+    def _validate_budget(
+        self,
+        month: str,
+        amount: int,
+    ) -> None:
+
+        try:
+            datetime.strptime(
+                month,
+                "%Y-%m"
+            )
+
+        except ValueError as error:
+            raise ValueError(
+                "월은 YYYY-MM 형식으로 입력해야 합니다."
+            ) from error
+
+        if amount <= 0:
+            raise ValueError(
+                "예산은 0보다 큰 금액이어야 합니다."
+            )
+
+
+    # ======================================================
+    # [17] 월별 예산 저장
+    # ======================================================
+
+    def set_budget(
+        self,
+        month: str,
+        amount: int,
+    ) -> None:
+
+        self._validate_budget(
+            month,
+            amount,
+        )
+
+        self.repository.set_budget(
+            month,
+            amount,
+        )
+
+
+    # ======================================================
+    # [18] 월별 예산 조회
+    # ======================================================
+    # 예산이 있으면 금액 반환
+    # 예산이 없으면 None 반환
+    # ======================================================
+
+    def get_budget(
+        self,
+        month: str
+    ) -> int | None:
+
+        try:
+            datetime.strptime(
+                month,
+                "%Y-%m"
+            )
+
+        except ValueError as error:
+            raise ValueError(
+                "월은 YYYY-MM 형식으로 입력해야 합니다."
+            ) from error
+
+        return self.repository.get_budget(
+            month
+        )
+
+
+    # ======================================================
+    # [19] 예산 사용 현황 계산
+    # ======================================================
+    # 예산이 설정되어 있으면
+    # 실제 지출액과 비교해서 다음을 계산함
+    #
+    # budget        = 월 예산
+    # spent         = 실제 지출
+    # usage_rate    = 예산 사용률(%)
+    # remaining     = 남은 예산
+    # exceeded      = 예산 초과 여부
+    #
+    # 예산이 설정되지 않았으면 None 반환
+    # ======================================================
+
+    def get_budget_status(
+        self,
+        month: str,
+        spent: int,
+    ) -> dict | None:
+
+        budget = self.get_budget(
+            month
+        )
+
+        # 해당 월에 예산이 없으면
+        # 계산할 필요가 없으므로 None 반환
+        if budget is None:
+            return None
+
+        # 예산 사용률 계산
+        usage_rate = (
+            spent / budget
+        ) * 100
+
+        # 남은 예산
+        remaining = (
+            budget - spent
+        )
+
+        # 지출이 예산보다 크면 True
+        exceeded = (
+            spent > budget
+        )
+
+        return {
+            "budget": budget,
+            "spent": spent,
+            "usage_rate": usage_rate,
+            "remaining": remaining,
+            "exceeded": exceeded,
+        }
