@@ -1,6 +1,6 @@
 import argparse
 from datetime import datetime
-
+from budget_app.csv_service import CsvService
 from budget_app.repository import (
     BudgetRepository,
     CategoryRepository,
@@ -289,6 +289,54 @@ def main() -> None:
         default=3
     )
 
+    # ======================================================
+    # [10-1] export 명령어 등록
+    # ======================================================
+
+    export_parser = subparsers.add_parser(
+        "export",
+        help="거래를 CSV 파일로 내보내기"
+    )
+
+    export_parser.add_argument(
+        "--out",
+        required=True,
+        help="저장할 CSV 파일 경로"
+    )
+
+    export_parser.add_argument(
+        "--month",
+        help="내보낼 월 (YYYY-MM)"
+    )
+
+    export_parser.add_argument(
+        "--from",
+        dest="date_from",
+        help="시작 날짜 (YYYY-MM-DD)"
+    )
+
+    export_parser.add_argument(
+        "--to",
+        dest="date_to",
+        help="끝 날짜 (YYYY-MM-DD)"
+    )
+
+    # ======================================================
+    # [10-2] import 명령어 등록
+    # ======================================================
+
+    import_parser = subparsers.add_parser(
+        "import",
+        help="CSV 파일의 거래 가져오기"
+    )
+
+    import_parser.add_argument(
+        "--from",
+        dest="from_path",
+        required=True,
+        help="가져올 CSV 파일 경로"
+    )
+
 
     # ======================================================
     # [11] update
@@ -439,6 +487,13 @@ def main() -> None:
             budget_repository
         )
     )
+
+    csv_service = (
+        CsvService(
+        transaction_repository,
+        category_repository,
+    )
+)
 
 
     # ======================================================
@@ -786,6 +841,70 @@ def main() -> None:
         return       
 
 
+    # ======================================================
+    # [20-1]export 실행
+    # ======================================================
+
+    if args.command == "export":
+
+        try:
+
+            exported_count = (
+                csv_service.export_transactions(
+                    out_path=args.out,
+                    month=args.month,
+                    date_from=args.date_from,
+                    date_to=args.date_to,
+                )
+            )
+
+            print(
+                f"[완료] {args.out} "
+                f"({exported_count} records)"
+            )
+
+        except ValueError as error:
+
+            print(
+                f"[export 오류] {error}"
+            )
+
+            raise SystemExit(1)
+
+        return
+    
+
+    # ======================================================
+    # [20-2] import 실행
+    # ======================================================
+
+    if args.command == "import":
+
+        try:
+
+            imported_count, skipped_count = (
+                csv_service.import_transactions(
+                    from_path=args.from_path
+                )
+            )
+
+            print(
+                f"[완료] "
+                f"imported={imported_count}, "
+                f"skipped={skipped_count}"
+            )
+
+        except ValueError as error:
+
+            print(
+                f"[import 오류] {error}"
+            )
+
+            raise SystemExit(1)
+
+        return
+
+    
     # ======================================================
     # [21] update 실행
     # ======================================================

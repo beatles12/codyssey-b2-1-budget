@@ -1,0 +1,5 @@
+date,type,category,amount,memo,tags
+2026-09-11,expense,food,15000,lunch,
+2026-09-14,expense,coffee,5000,아메리카노,
+2026-09-14,expense,food,13000,저녁식사,"meal,dinner"
+2026-09-14,expense,food,7000,,
