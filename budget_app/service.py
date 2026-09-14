@@ -1,4 +1,5 @@
 from collections import deque
+from collections.abc import Iterator
 from datetime import datetime
 from uuid import uuid4
 
@@ -13,7 +14,7 @@ from budget_app.repository import (
 # [1] 거래 서비스 클래스
 # ==========================================================
 # 역할:
-# - 거래 추가, 조회, 수정, 삭제 업무를 처리함
+# - 거래 추가, 조회, 검색, 수정, 삭제 업무를 처리함
 # - 잘못된 입력값을 검사함
 # - 실제 파일 작업은 Repository에 맡김
 # ==========================================================
@@ -75,7 +76,31 @@ class TransactionService:
 
 
     # ======================================================
-    # [3] 새 거래 추가
+    # [3] 검색 날짜 형식 검증
+    # ======================================================
+    # --from / --to에 날짜가 들어온 경우
+    # YYYY-MM-DD 형식인지 검사함
+    # ======================================================
+
+    def _validate_search_date(
+        self,
+        date: str
+    ) -> None:
+
+        try:
+            datetime.strptime(
+                date,
+                "%Y-%m-%d"
+            )
+
+        except ValueError as error:
+            raise ValueError(
+                "검색 날짜는 YYYY-MM-DD 형식이어야 합니다."
+            ) from error
+
+
+    # ======================================================
+    # [4] 새 거래 추가
     # ======================================================
 
     def add_transaction(
@@ -120,10 +145,7 @@ class TransactionService:
 
 
     # ======================================================
-    # [4] 최신 거래 목록 조회
-    # ======================================================
-    # Generator로 거래를 한 건씩 읽고
-    # deque를 이용해 마지막 N건만 보관함
+    # [5] 최신 거래 목록 조회
     # ======================================================
 
     def list_transactions(
@@ -155,17 +177,138 @@ class TransactionService:
 
 
     # ======================================================
-    # [5] 거래 수정
+    # [6] 조건으로 거래 검색
     # ======================================================
-    # 기존 거래를 id로 찾은 뒤
-    # 새 값이 들어온 항목만 바꿈
+    # 지원 조건:
+    # - date_from        시작 날짜
+    # - date_to          끝 날짜
+    # - category         카테고리
+    # - transaction_type 수입/지출
+    # - query            메모 검색어
+    # - tag              태그
     #
-    # None이 들어온 항목은 기존 값을 그대로 유지함
+    # Repository의 Generator로 거래를 한 건씩 읽으면서
+    # 조건에 맞지 않는 거래는 continue로 건너뜀
     #
-    # 예:
-    # amount만 20000으로 전달
-    # → 날짜, 타입, 카테고리 등은 그대로
-    # → 금액만 20000으로 변경
+    # 검색된 거래만 임시로 보관한 뒤
+    # pop()을 이용해 최신 거래부터 yield 함
+    # ======================================================
+
+    def search_transactions(
+        self,
+        date_from: str | None = None,
+        date_to: str | None = None,
+        category: str | None = None,
+        transaction_type: str | None = None,
+        query: str | None = None,
+        tag: str | None = None,
+    ) -> Iterator[Transaction]:
+
+        # ------------------------------
+        # 검색 조건 검증
+        # ------------------------------
+
+        if date_from:
+            self._validate_search_date(
+                date_from
+            )
+
+        if date_to:
+            self._validate_search_date(
+                date_to
+            )
+
+        if (
+            date_from
+            and date_to
+            and date_from > date_to
+        ):
+            raise ValueError(
+                "시작 날짜는 끝 날짜보다 늦을 수 없습니다."
+            )
+
+        if (
+            transaction_type
+            and transaction_type not in (
+                "income",
+                "expense"
+            )
+        ):
+            raise ValueError(
+                "검색 타입은 income 또는 expense만 가능합니다."
+            )
+
+
+        # ------------------------------
+        # 조건에 맞는 거래 찾기
+        # ------------------------------
+
+        matches = deque()
+
+        for transaction in (
+            self.repository.iter_transactions()
+        ):
+
+            # 시작 날짜보다 이전이면 제외
+            if (
+                date_from
+                and transaction.date < date_from
+            ):
+                continue
+
+            # 끝 날짜보다 이후이면 제외
+            if (
+                date_to
+                and transaction.date > date_to
+            ):
+                continue
+
+            # 카테고리가 다르면 제외
+            if (
+                category
+                and transaction.category != category
+            ):
+                continue
+
+            # 수입/지출 종류가 다르면 제외
+            if (
+                transaction_type
+                and transaction.type != transaction_type
+            ):
+                continue
+
+            # 메모에 검색어가 없으면 제외
+            if (
+                query
+                and query.lower()
+                not in transaction.memo.lower()
+            ):
+                continue
+
+            # 태그가 없으면 제외
+            if (
+                tag
+                and tag not in transaction.tags
+            ):
+                continue
+
+            # 모든 조건을 통과한 거래만 저장
+            matches.append(
+                transaction
+            )
+
+
+        # ------------------------------
+        # 최신 거래부터 하나씩 반환
+        # ------------------------------
+
+        while matches:
+
+            yield matches.pop()
+
+
+    # ======================================================
+    # [7] 거래 수정
     # ======================================================
 
     def update_transaction(
@@ -188,7 +331,6 @@ class TransactionService:
                 "거래 id를 입력해야 합니다."
             )
 
-        # 기존 거래 찾기
         current = self.repository.find_by_id(
             transaction_id
         )
@@ -198,7 +340,6 @@ class TransactionService:
                 "해당 id의 거래를 찾을 수 없습니다."
             )
 
-        # 새 값이 없으면 기존 값 유지
         new_type = (
             transaction_type
             if transaction_type is not None
@@ -235,7 +376,6 @@ class TransactionService:
             else current.tags
         )
 
-        # 수정 후 최종 값도 다시 검증
         self._validate_transaction_input(
             new_type,
             new_date,
@@ -243,7 +383,6 @@ class TransactionService:
             new_category,
         )
 
-        # id는 기존 id를 그대로 사용
         updated_transaction = Transaction(
             id=current.id,
             type=new_type,
@@ -268,7 +407,7 @@ class TransactionService:
 
 
     # ======================================================
-    # [6] 거래 삭제
+    # [8] 거래 삭제
     # ======================================================
 
     def delete_transaction(
@@ -305,18 +444,13 @@ class TransactionService:
 
 
 # ==========================================================
-# [7] 카테고리 서비스 클래스
-# ==========================================================
-# 역할:
-# - 카테고리 추가 / 조회 / 삭제 업무를 처리함
-# - 중복 카테고리를 막음
-# - 사용 중인 카테고리는 삭제하지 못하게 함
+# [9] 카테고리 서비스 클래스
 # ==========================================================
 
 class CategoryService:
 
     # ======================================================
-    # [7-1] 카테고리 서비스 초기화
+    # [9-1] 카테고리 서비스 초기화
     # ======================================================
 
     def __init__(
@@ -335,7 +469,7 @@ class CategoryService:
 
 
     # ======================================================
-    # [8] 카테고리 목록 조회
+    # [10] 카테고리 목록 조회
     # ======================================================
 
     def list_categories(
@@ -348,7 +482,7 @@ class CategoryService:
 
 
     # ======================================================
-    # [9] 새 카테고리 추가
+    # [11] 새 카테고리 추가
     # ======================================================
 
     def add_category(
@@ -378,7 +512,7 @@ class CategoryService:
 
 
     # ======================================================
-    # [10] 카테고리 삭제
+    # [12] 카테고리 삭제
     # ======================================================
 
     def remove_category(

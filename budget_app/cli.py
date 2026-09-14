@@ -14,6 +14,11 @@ from budget_app.service import (
 # ==========================================================
 # [1] 날짜 입력 편하게 바꾸기
 # ==========================================================
+# 역할:
+# - Enter만 누르면 오늘 날짜 사용
+# - 20260914처럼 숫자 8자리로 입력하면
+#   2026-09-14 형식으로 자동 변환
+# ==========================================================
 
 def normalize_date_input(date_text: str) -> str:
 
@@ -143,8 +148,6 @@ def choose_category(
 # ==========================================================
 # [5] 수정용 카테고리 선택
 # ==========================================================
-# Enter를 누르면 기존 카테고리를 유지함
-# ==========================================================
 
 def choose_category_for_update(
     category_repository: CategoryRepository,
@@ -235,10 +238,56 @@ def main() -> None:
 
 
     # ======================================================
-    # [9] update 명령어 등록
+    # [9] search 명령어 등록
     # ======================================================
-    # 실행 예:
-    # python -m budget_app update --id 거래ID
+    # 예:
+    # python -m budget_app search --category coffee
+    # python -m budget_app search --type expense
+    # python -m budget_app search --q 아메리카노
+    # python -m budget_app search --from 2026-09-01 --to 2026-09-30
+    # ======================================================
+
+    search_parser = subparsers.add_parser(
+        "search",
+        help="조건으로 거래 검색"
+    )
+
+    search_parser.add_argument(
+        "--from",
+        dest="date_from",
+        help="검색 시작 날짜 (YYYY-MM-DD)"
+    )
+
+    search_parser.add_argument(
+        "--to",
+        dest="date_to",
+        help="검색 끝 날짜 (YYYY-MM-DD)"
+    )
+
+    search_parser.add_argument(
+        "--category",
+        help="카테고리"
+    )
+
+    search_parser.add_argument(
+        "--type",
+        dest="transaction_type",
+        help="income 또는 expense"
+    )
+
+    search_parser.add_argument(
+        "--q",
+        help="메모 검색어"
+    )
+
+    search_parser.add_argument(
+        "--tag",
+        help="태그"
+    )
+
+
+    # ======================================================
+    # [10] update 명령어 등록
     # ======================================================
 
     update_parser = subparsers.add_parser(
@@ -254,7 +303,7 @@ def main() -> None:
 
 
     # ======================================================
-    # [10] delete 명령어 등록
+    # [11] delete 명령어 등록
     # ======================================================
 
     delete_parser = subparsers.add_parser(
@@ -270,7 +319,7 @@ def main() -> None:
 
 
     # ======================================================
-    # [11] category 명령어 등록
+    # [12] category 명령어 등록
     # ======================================================
 
     category_parser = subparsers.add_parser(
@@ -301,14 +350,14 @@ def main() -> None:
 
 
     # ======================================================
-    # [12] 사용자가 입력한 명령어 읽기
+    # [13] 사용자가 입력한 명령어 읽기
     # ======================================================
 
     args = parser.parse_args()
 
 
     # ======================================================
-    # [13] Repository와 Service 준비
+    # [14] Repository와 Service 준비
     # ======================================================
 
     transaction_repository = (
@@ -334,7 +383,7 @@ def main() -> None:
 
 
     # ======================================================
-    # [14] add 명령어 실행
+    # [15] add 명령어 실행
     # ======================================================
 
     if args.command == "add":
@@ -357,12 +406,10 @@ def main() -> None:
                 category_repository
             )
 
-            amount_text = input(
-                "금액(양수): "
-            ).strip()
-
             amount = int(
-                amount_text
+                input(
+                    "금액(양수): "
+                ).strip()
             )
 
             memo = input(
@@ -374,15 +421,12 @@ def main() -> None:
             ).strip()
 
             if tags_text:
-
                 tags = [
                     tag.strip()
                     for tag in tags_text.split(",")
                     if tag.strip()
                 ]
-
             else:
-
                 tags = []
 
             transaction = (
@@ -412,7 +456,7 @@ def main() -> None:
 
 
     # ======================================================
-    # [15] list 명령어 실행
+    # [16] list 명령어 실행
     # ======================================================
 
     if args.command == "list":
@@ -438,7 +482,6 @@ def main() -> None:
             print(
                 "저장된 거래가 없습니다."
             )
-
             return
 
         for number, transaction in enumerate(
@@ -463,15 +506,72 @@ def main() -> None:
 
 
     # ======================================================
-    # [16] update 명령어 실행
+    # [17] search 명령어 실행
     # ======================================================
-    # 기존 거래를 먼저 찾고 현재 값을 보여줌
-    #
-    # Enter:
-    # - 기존 값 유지
-    #
-    # 새 값을 입력:
-    # - 해당 항목만 수정
+    # 입력받은 검색 조건을 Service에 전달함
+    # 검색된 거래를 최신순으로 출력함
+    # ======================================================
+
+    if args.command == "search":
+
+        found = False
+
+        try:
+
+            transactions = (
+                transaction_service.search_transactions(
+                    date_from=args.date_from,
+                    date_to=args.date_to,
+                    category=args.category,
+                    transaction_type=args.transaction_type,
+                    query=args.q,
+                    tag=args.tag,
+                )
+            )
+
+            for number, transaction in enumerate(
+                transactions,
+                start=1
+            ):
+
+                found = True
+
+                print(
+                    f"\n[{number}] "
+                    f"{transaction.date} | "
+                    f"{transaction.type} | "
+                    f"{transaction.category} | "
+                    f"{transaction.amount:,}원 | "
+                    f"{transaction.memo}"
+                )
+
+                print(
+                    f"    tags: {', '.join(transaction.tags)}"
+                )
+
+                print(
+                    f"    id: {transaction.id}"
+                )
+
+        except ValueError as error:
+
+            print(
+                f"[검색 오류] {error}"
+            )
+
+            raise SystemExit(1)
+
+        if not found:
+
+            print(
+                "검색 결과가 없습니다."
+            )
+
+        return
+
+
+    # ======================================================
+    # [18] update 명령어 실행
     # ======================================================
 
     if args.command == "update":
@@ -489,52 +589,26 @@ def main() -> None:
             raise SystemExit(1)
 
         print("\n[현재 거래]")
-        print(
-            f"날짜: {current.date}"
-        )
-        print(
-            f"종류: {current.type}"
-        )
-        print(
-            f"카테고리: {current.category}"
-        )
-        print(
-            f"금액: {current.amount:,}원"
-        )
-        print(
-            f"메모: {current.memo}"
-        )
-        print(
-            f"태그: {', '.join(current.tags)}"
-        )
+        print(f"날짜: {current.date}")
+        print(f"종류: {current.type}")
+        print(f"카테고리: {current.category}")
+        print(f"금액: {current.amount:,}원")
+        print(f"메모: {current.memo}")
+        print(f"태그: {', '.join(current.tags)}")
 
         print(
             "\n바꾸지 않을 항목은 Enter를 누르세요."
         )
 
-
-        # ----------------------------------------------
-        # 날짜 수정
-        # ----------------------------------------------
-
         date_text = input(
             f"새 날짜 [{current.date}]: "
         ).strip()
 
-        if date_text:
-
-            new_date = normalize_date_input(
-                date_text
-            )
-
-        else:
-
-            new_date = None
-
-
-        # ----------------------------------------------
-        # 거래 종류 수정
-        # ----------------------------------------------
+        new_date = (
+            normalize_date_input(date_text)
+            if date_text
+            else None
+        )
 
         new_type = (
             choose_transaction_type_for_update(
@@ -542,22 +616,12 @@ def main() -> None:
             )
         )
 
-
-        # ----------------------------------------------
-        # 카테고리 수정
-        # ----------------------------------------------
-
         new_category = (
             choose_category_for_update(
                 category_repository,
                 current.category,
             )
         )
-
-
-        # ----------------------------------------------
-        # 금액 수정
-        # ----------------------------------------------
 
         amount_text = input(
             f"새 금액 [{current.amount}]: "
@@ -579,11 +643,6 @@ def main() -> None:
 
             raise SystemExit(1)
 
-
-        # ----------------------------------------------
-        # 메모 수정
-        # ----------------------------------------------
-
         memo_text = input(
             f"새 메모 [{current.memo}]: "
         )
@@ -593,11 +652,6 @@ def main() -> None:
             if memo_text != ""
             else None
         )
-
-
-        # ----------------------------------------------
-        # 태그 수정
-        # ----------------------------------------------
 
         tags_text = input(
             "새 태그(쉼표 구분 / Enter=기존 유지): "
@@ -614,11 +668,6 @@ def main() -> None:
         else:
 
             new_tags = None
-
-
-        # ----------------------------------------------
-        # Service에 수정 요청
-        # ----------------------------------------------
 
         try:
 
@@ -656,7 +705,7 @@ def main() -> None:
 
 
     # ======================================================
-    # [17] delete 명령어 실행
+    # [19] delete 명령어 실행
     # ======================================================
 
     if args.command == "delete":
@@ -671,7 +720,6 @@ def main() -> None:
             print(
                 "삭제를 취소했습니다."
             )
-
             return
 
         try:
@@ -696,7 +744,7 @@ def main() -> None:
 
 
     # ======================================================
-    # [18] category 명령어 실행
+    # [20] category 명령어 실행
     # ======================================================
 
     if args.command == "category":
@@ -762,7 +810,6 @@ def main() -> None:
                 print(
                     "삭제를 취소했습니다."
                 )
-
                 return
 
             try:
@@ -785,13 +832,12 @@ def main() -> None:
 
             return
 
-
         category_parser.print_help()
         return
 
 
     # ======================================================
-    # [19] 명령어가 없으면 도움말 출력
+    # [21] 명령어가 없으면 도움말 출력
     # ======================================================
 
     parser.print_help()
