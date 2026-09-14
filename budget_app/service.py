@@ -1,4 +1,4 @@
-from collections import deque
+from collections import defaultdict, deque
 from collections.abc import Iterator
 from datetime import datetime
 from uuid import uuid4
@@ -14,7 +14,7 @@ from budget_app.repository import (
 # [1] 거래 서비스 클래스
 # ==========================================================
 # 역할:
-# - 거래 추가, 조회, 검색, 수정, 삭제 업무를 처리함
+# - 거래 추가, 조회, 검색, 요약, 수정, 삭제 업무를 처리함
 # - 잘못된 입력값을 검사함
 # - 실제 파일 작업은 Repository에 맡김
 # ==========================================================
@@ -78,9 +78,6 @@ class TransactionService:
     # ======================================================
     # [3] 검색 날짜 형식 검증
     # ======================================================
-    # --from / --to에 날짜가 들어온 경우
-    # YYYY-MM-DD 형식인지 검사함
-    # ======================================================
 
     def _validate_search_date(
         self,
@@ -100,7 +97,34 @@ class TransactionService:
 
 
     # ======================================================
-    # [4] 새 거래 추가
+    # [4] 월 형식 검증
+    # ======================================================
+    # summary에서 사용하는 YYYY-MM 형식을 검사함
+    #
+    # 예:
+    # 2026-09  → 정상
+    # 2026-13  → 오류
+    # ======================================================
+
+    def _validate_month(
+        self,
+        month: str
+    ) -> None:
+
+        try:
+            datetime.strptime(
+                month,
+                "%Y-%m"
+            )
+
+        except ValueError as error:
+            raise ValueError(
+                "월은 YYYY-MM 형식으로 입력해야 합니다."
+            ) from error
+
+
+    # ======================================================
+    # [5] 새 거래 추가
     # ======================================================
 
     def add_transaction(
@@ -145,7 +169,7 @@ class TransactionService:
 
 
     # ======================================================
-    # [5] 최신 거래 목록 조회
+    # [6] 최신 거래 목록 조회
     # ======================================================
 
     def list_transactions(
@@ -177,21 +201,7 @@ class TransactionService:
 
 
     # ======================================================
-    # [6] 조건으로 거래 검색
-    # ======================================================
-    # 지원 조건:
-    # - date_from        시작 날짜
-    # - date_to          끝 날짜
-    # - category         카테고리
-    # - transaction_type 수입/지출
-    # - query            메모 검색어
-    # - tag              태그
-    #
-    # Repository의 Generator로 거래를 한 건씩 읽으면서
-    # 조건에 맞지 않는 거래는 continue로 건너뜀
-    #
-    # 검색된 거래만 임시로 보관한 뒤
-    # pop()을 이용해 최신 거래부터 yield 함
+    # [7] 조건으로 거래 검색
     # ======================================================
 
     def search_transactions(
@@ -203,10 +213,6 @@ class TransactionService:
         query: str | None = None,
         tag: str | None = None,
     ) -> Iterator[Transaction]:
-
-        # ------------------------------
-        # 검색 조건 검증
-        # ------------------------------
 
         if date_from:
             self._validate_search_date(
@@ -238,46 +244,36 @@ class TransactionService:
                 "검색 타입은 income 또는 expense만 가능합니다."
             )
 
-
-        # ------------------------------
-        # 조건에 맞는 거래 찾기
-        # ------------------------------
-
         matches = deque()
 
         for transaction in (
             self.repository.iter_transactions()
         ):
 
-            # 시작 날짜보다 이전이면 제외
             if (
                 date_from
                 and transaction.date < date_from
             ):
                 continue
 
-            # 끝 날짜보다 이후이면 제외
             if (
                 date_to
                 and transaction.date > date_to
             ):
                 continue
 
-            # 카테고리가 다르면 제외
             if (
                 category
                 and transaction.category != category
             ):
                 continue
 
-            # 수입/지출 종류가 다르면 제외
             if (
                 transaction_type
                 and transaction.type != transaction_type
             ):
                 continue
 
-            # 메모에 검색어가 없으면 제외
             if (
                 query
                 and query.lower()
@@ -285,30 +281,113 @@ class TransactionService:
             ):
                 continue
 
-            # 태그가 없으면 제외
             if (
                 tag
                 and tag not in transaction.tags
             ):
                 continue
 
-            # 모든 조건을 통과한 거래만 저장
             matches.append(
                 transaction
             )
 
-
-        # ------------------------------
-        # 최신 거래부터 하나씩 반환
-        # ------------------------------
-
         while matches:
-
             yield matches.pop()
 
 
     # ======================================================
-    # [7] 거래 수정
+    # [8] 월별 요약 계산
+    # ======================================================
+    # 해당 월의 거래를 한 건씩 읽으면서
+    # 총수입, 총지출, 잔액을 계산함
+    #
+    # expense 거래는 카테고리별로 합산하고
+    # 금액이 큰 순서대로 TOP N을 만듦
+    # ======================================================
+
+    def summarize_month(
+        self,
+        month: str,
+        top: int = 3,
+    ) -> dict:
+
+        # YYYY-MM 형식 검사
+        self._validate_month(
+            month
+        )
+
+        if top <= 0:
+            raise ValueError(
+                "TOP 개수는 1 이상이어야 합니다."
+            )
+
+        total_income = 0
+        total_expense = 0
+        transaction_count = 0
+
+        # 카테고리별 지출 금액 저장
+        category_expenses = defaultdict(int)
+
+        # 파일을 한 건씩 읽으면서 계산
+        for transaction in (
+            self.repository.iter_transactions()
+        ):
+
+            # 해당 월이 아니면 건너뜀
+            if not transaction.date.startswith(
+                month
+            ):
+                continue
+
+            transaction_count += 1
+
+            # 수입 합계
+            if transaction.type == "income":
+
+                total_income += (
+                    transaction.amount
+                )
+
+            # 지출 합계 + 카테고리별 합계
+            elif transaction.type == "expense":
+
+                total_expense += (
+                    transaction.amount
+                )
+
+                category_expenses[
+                    transaction.category
+                ] += transaction.amount
+
+
+        # 수입 - 지출 = 잔액
+        balance = (
+            total_income
+            - total_expense
+        )
+
+
+        # 카테고리별 지출을 큰 금액 순으로 정렬
+        top_categories = sorted(
+            category_expenses.items(),
+            key=lambda item: item[1],
+            reverse=True,
+        )[:top]
+
+
+        # 계산 결과를 하나의 딕셔너리로 반환
+        return {
+            "month": month,
+            "transaction_count": transaction_count,
+            "total_income": total_income,
+            "total_expense": total_expense,
+            "balance": balance,
+            "top_categories": top_categories,
+        }
+
+
+    # ======================================================
+    # [9] 거래 수정
     # ======================================================
 
     def update_transaction(
@@ -407,7 +486,7 @@ class TransactionService:
 
 
     # ======================================================
-    # [8] 거래 삭제
+    # [10] 거래 삭제
     # ======================================================
 
     def delete_transaction(
@@ -444,13 +523,13 @@ class TransactionService:
 
 
 # ==========================================================
-# [9] 카테고리 서비스 클래스
+# [11] 카테고리 서비스 클래스
 # ==========================================================
 
 class CategoryService:
 
     # ======================================================
-    # [9-1] 카테고리 서비스 초기화
+    # [11-1] 카테고리 서비스 초기화
     # ======================================================
 
     def __init__(
@@ -469,7 +548,7 @@ class CategoryService:
 
 
     # ======================================================
-    # [10] 카테고리 목록 조회
+    # [12] 카테고리 목록 조회
     # ======================================================
 
     def list_categories(
@@ -482,7 +561,7 @@ class CategoryService:
 
 
     # ======================================================
-    # [11] 새 카테고리 추가
+    # [13] 새 카테고리 추가
     # ======================================================
 
     def add_category(
@@ -512,7 +591,7 @@ class CategoryService:
 
 
     # ======================================================
-    # [12] 카테고리 삭제
+    # [14] 카테고리 삭제
     # ======================================================
 
     def remove_category(

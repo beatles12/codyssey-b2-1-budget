@@ -14,11 +14,6 @@ from budget_app.service import (
 # ==========================================================
 # [1] 날짜 입력 편하게 바꾸기
 # ==========================================================
-# 역할:
-# - Enter만 누르면 오늘 날짜 사용
-# - 20260914처럼 숫자 8자리로 입력하면
-#   2026-09-14 형식으로 자동 변환
-# ==========================================================
 
 def normalize_date_input(date_text: str) -> str:
 
@@ -67,8 +62,6 @@ def choose_transaction_type() -> str:
 
 # ==========================================================
 # [3] 수정용 거래 종류 선택
-# ==========================================================
-# Enter를 누르면 기존 값을 그대로 유지함
 # ==========================================================
 
 def choose_transaction_type_for_update(
@@ -240,12 +233,6 @@ def main() -> None:
     # ======================================================
     # [9] search 명령어 등록
     # ======================================================
-    # 예:
-    # python -m budget_app search --category coffee
-    # python -m budget_app search --type expense
-    # python -m budget_app search --q 아메리카노
-    # python -m budget_app search --from 2026-09-01 --to 2026-09-30
-    # ======================================================
 
     search_parser = subparsers.add_parser(
         "search",
@@ -287,7 +274,34 @@ def main() -> None:
 
 
     # ======================================================
-    # [10] update 명령어 등록
+    # [10] summary 명령어 등록
+    # ======================================================
+    # 실행 예:
+    # python -m budget_app summary --month 2026-09
+    # python -m budget_app summary --month 2026-09 --top 3
+    # ======================================================
+
+    summary_parser = subparsers.add_parser(
+        "summary",
+        help="월별 수입/지출 요약"
+    )
+
+    summary_parser.add_argument(
+        "--month",
+        required=True,
+        help="요약할 월 (YYYY-MM)"
+    )
+
+    summary_parser.add_argument(
+        "--top",
+        type=int,
+        default=3,
+        help="지출 상위 카테고리 개수 (기본값: 3)"
+    )
+
+
+    # ======================================================
+    # [11] update 명령어 등록
     # ======================================================
 
     update_parser = subparsers.add_parser(
@@ -303,7 +317,7 @@ def main() -> None:
 
 
     # ======================================================
-    # [11] delete 명령어 등록
+    # [12] delete 명령어 등록
     # ======================================================
 
     delete_parser = subparsers.add_parser(
@@ -319,7 +333,7 @@ def main() -> None:
 
 
     # ======================================================
-    # [12] category 명령어 등록
+    # [13] category 명령어 등록
     # ======================================================
 
     category_parser = subparsers.add_parser(
@@ -350,14 +364,14 @@ def main() -> None:
 
 
     # ======================================================
-    # [13] 사용자가 입력한 명령어 읽기
+    # [14] 사용자가 입력한 명령어 읽기
     # ======================================================
 
     args = parser.parse_args()
 
 
     # ======================================================
-    # [14] Repository와 Service 준비
+    # [15] Repository와 Service 준비
     # ======================================================
 
     transaction_repository = (
@@ -383,7 +397,7 @@ def main() -> None:
 
 
     # ======================================================
-    # [15] add 명령어 실행
+    # [16] add 명령어 실행
     # ======================================================
 
     if args.command == "add":
@@ -421,12 +435,15 @@ def main() -> None:
             ).strip()
 
             if tags_text:
+
                 tags = [
                     tag.strip()
                     for tag in tags_text.split(",")
                     if tag.strip()
                 ]
+
             else:
+
                 tags = []
 
             transaction = (
@@ -456,7 +473,7 @@ def main() -> None:
 
 
     # ======================================================
-    # [16] list 명령어 실행
+    # [17] list 명령어 실행
     # ======================================================
 
     if args.command == "list":
@@ -506,10 +523,7 @@ def main() -> None:
 
 
     # ======================================================
-    # [17] search 명령어 실행
-    # ======================================================
-    # 입력받은 검색 조건을 Service에 전달함
-    # 검색된 거래를 최신순으로 출력함
+    # [18] search 명령어 실행
     # ======================================================
 
     if args.command == "search":
@@ -571,7 +585,98 @@ def main() -> None:
 
 
     # ======================================================
-    # [18] update 명령어 실행
+    # [19] summary 명령어 실행
+    # ======================================================
+    # 해당 월의 수입, 지출, 잔액을 출력하고
+    # 카테고리별 지출 상위 N개를 보여줌
+    # ======================================================
+
+    if args.command == "summary":
+
+        try:
+
+            summary = (
+                transaction_service.summarize_month(
+                    month=args.month,
+                    top=args.top,
+                )
+            )
+
+        except ValueError as error:
+
+            print(
+                f"[요약 오류] {error}"
+            )
+
+            raise SystemExit(1)
+
+
+        # 해당 월에 거래가 하나도 없는 경우
+        if summary["transaction_count"] == 0:
+
+            print(
+                f"{args.month}: 데이터 없음"
+            )
+
+            return
+
+
+        print(
+            f"\n[월별 요약] {summary['month']}"
+        )
+
+        print(
+            f"거래 건수: "
+            f"{summary['transaction_count']}건"
+        )
+
+        print(
+            f"총 수입: "
+            f"{summary['total_income']:,}원"
+        )
+
+        print(
+            f"총 지출: "
+            f"{summary['total_expense']:,}원"
+        )
+
+        print(
+            f"잔액: "
+            f"{summary['balance']:,}원"
+        )
+
+
+        print(
+            f"\n[지출 카테고리 TOP {args.top}]"
+        )
+
+        if not summary["top_categories"]:
+
+            print(
+                "지출 데이터가 없습니다."
+            )
+
+        else:
+
+            for rank, (
+                category,
+                amount,
+            ) in enumerate(
+                summary["top_categories"],
+                start=1
+            ):
+
+                print(
+                    f"{rank}. "
+                    f"{category}: "
+                    f"{amount:,}원"
+                )
+
+        return
+
+
+    # ======================================================
+    # [20] update 명령어 실행
     # ======================================================
 
     if args.command == "update":
@@ -705,7 +810,7 @@ def main() -> None:
 
 
     # ======================================================
-    # [19] delete 명령어 실행
+    # [21] delete 명령어 실행
     # ======================================================
 
     if args.command == "delete":
@@ -744,7 +849,7 @@ def main() -> None:
 
 
     # ======================================================
-    # [20] category 명령어 실행
+    # [22] category 명령어 실행
     # ======================================================
 
     if args.command == "category":
@@ -837,7 +942,7 @@ def main() -> None:
 
 
     # ======================================================
-    # [21] 명령어가 없으면 도움말 출력
+    # [23] 명령어가 없으면 도움말 출력
     # ======================================================
 
     parser.print_help()
