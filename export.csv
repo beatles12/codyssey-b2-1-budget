@@ -3,3 +3,4 @@ date,type,category,amount,memo,tags
 2026-09-14,expense,coffee,5000,아메리카노,
 2026-09-14,expense,food,13000,저녁식사,"meal,dinner"
 2026-09-14,expense,food,7000,,
+2026-09-15,income,salary,1000000,용돈수입,test

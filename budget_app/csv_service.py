@@ -1,7 +1,7 @@
 import csv
 from datetime import datetime
 from pathlib import Path
-
+from budget_app.decorators import measure_time
 from budget_app.repository import (
     CategoryRepository,
     TransactionRepository,
@@ -111,7 +111,7 @@ class CsvService:
     # ======================================================
     # [5] CSV 내보내기
     # ======================================================
-
+    @measure_time
     def export_transactions(
         self,
         out_path: str,
