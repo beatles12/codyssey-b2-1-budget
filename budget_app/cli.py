@@ -996,7 +996,8 @@ def main() -> None:
             print(
                 "[힌트] 예: 15000"
             )
-
+            raise SystemExit(1) 
+        
         memo_text = input(
             f"새 메모 [{current.memo}]: "
         )
