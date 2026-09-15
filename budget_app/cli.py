@@ -978,11 +978,24 @@ def main() -> None:
             f"새 금액 [{current.amount}]: "
         ).strip()
 
-        new_amount = (
-            int(amount_text)
-            if amount_text
-            else None
-        )
+        
+        try:
+
+            new_amount = (
+                int(amount_text)
+                if amount_text
+                else None
+            )
+
+        except ValueError:
+
+            print(
+                "[수정 오류] 금액은 숫자로 입력해야 합니다."
+            )
+
+            print(
+                "[힌트] 예: 15000"
+            )
 
         memo_text = input(
             f"새 메모 [{current.memo}]: "
