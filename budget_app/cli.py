@@ -1,5 +1,6 @@
 import argparse
 from datetime import datetime
+from pathlib import Path
 from budget_app.csv_service import CsvService
 from budget_app.repository import (
     BudgetRepository,
@@ -199,7 +200,11 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         description="나만의 용돈 기입장 프로그램"
     )
-
+    parser.add_argument(
+        "--data-dir",
+        default="data",
+        help="데이터 저장 폴더 (기본값: data)"
+    )
     subparsers = parser.add_subparsers(
         dest="command"
     )
@@ -457,18 +462,33 @@ def main() -> None:
     # [16] Repository / Service 준비
     # ======================================================
 
+    data_dir = Path(
+        args.data_dir
+    )
+
     transaction_repository = (
-        TransactionRepository()
+        TransactionRepository(
+            str(
+                data_dir / "transactions.jsonl"
+            )
+        )
     )
 
     category_repository = (
-        CategoryRepository()
+        CategoryRepository(
+            str(
+                data_dir / "categories.jsonl"
+            )
+        )
     )
 
     budget_repository = (
-        BudgetRepository()
+        BudgetRepository(
+            str(
+                data_dir / "budgets.jsonl"
+            )
+        )
     )
-
     transaction_service = (
         TransactionService(
             transaction_repository
