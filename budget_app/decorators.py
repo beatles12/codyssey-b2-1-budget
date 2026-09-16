@@ -78,3 +78,55 @@ def measure_time(
         return result
 
     return wrapper
+
+# ==========================================================
+# [3] 프로그램 입력 중단 안전 처리 데코레이터
+# ==========================================================
+# 역할:
+# - 사용자가 Ctrl+C를 눌러 프로그램을 중단했을 때
+#   긴 traceback 대신 짧은 안내 메시지를 출력함
+# - 입력이 갑자기 끝나는 EOFError도 처리함
+#
+# 왜 필요한가:
+# - 평가 기준에서 오류 상황에 traceback을 보여주면 안 됨
+# - 프로그램 진입점에서 공통으로 처리하면
+#   여러 명령마다 같은 예외 처리를 반복하지 않아도 됨
+# ==========================================================
+
+def safe_entry(
+    func: Callable[..., T]
+) -> Callable[..., T]:
+
+    @wraps(func)
+    def wrapper(
+        *args,
+        **kwargs,
+    ) -> T:
+
+        try:
+            return func(
+                *args,
+                **kwargs,
+            )
+
+        except KeyboardInterrupt:
+
+            print(
+                "\n[중단] 사용자가 프로그램 실행을 중단했습니다."
+            )
+
+            raise SystemExit(1)
+
+        except EOFError:
+
+            print(
+                "\n[입력 오류] 입력이 예상보다 일찍 종료되었습니다."
+            )
+
+            print(
+                "[힌트] 다시 실행한 뒤 필요한 값을 입력해주세요."
+            )
+
+            raise SystemExit(1)
+
+    return wrapper

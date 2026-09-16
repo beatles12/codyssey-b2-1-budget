@@ -540,11 +540,25 @@ def main() -> None:
                 category_repository
             )
 
-            amount = int(
-                input(
-                    "금액(양수): "
-                ).strip()
-            )
+
+            amount_text = input(
+                "금액(양수): "
+            ).strip()
+
+            try:
+                amount = int(
+                    amount_text
+                )
+
+            except ValueError:
+                print(
+                    "[입력 오류] 금액은 숫자로 입력해야 합니다."
+                )
+                print(
+                    "[힌트] 예: 15000"
+                )
+                raise SystemExit(1)
+
 
             memo = input(
                 "메모(선택): "

@@ -1,4 +1,5 @@
 from budget_app.cli import main
+from budget_app.decorators import safe_entry
 
 
 # ==========================================================
@@ -12,4 +13,5 @@ from budget_app.cli import main
 # ==========================================================
 
 if __name__ == "__main__":
-    main()
+    safe_main = safe_entry(main)
+    safe_main()
