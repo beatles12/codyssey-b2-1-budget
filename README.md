@@ -23,3 +23,443 @@ CSV 가져오기/내보내기 기능을 제공합니다.
 
 ```powershell
 python -m budget_app --help
+```
+
+기본 실행 형식:
+
+```text
+python -m budget_app <command> [options]
+```
+
+위의 `<command>`와 `[options]`는 설명용 표기이며
+PowerShell에 그대로 입력하는 문장이 아닙니다.
+
+예를 들어 거래 목록 3건을 보려면 다음과 같이 실행합니다.
+
+```powershell
+python -m budget_app list --limit 3
+```
+
+---
+
+## 3. 주요 명령
+
+### 거래 추가
+
+```powershell
+python -m budget_app add
+```
+
+날짜, 거래 종류, 카테고리, 금액, 메모, 태그를
+대화형으로 입력합니다.
+
+날짜는 다음 방식으로 입력할 수 있습니다.
+
+- Enter: 오늘 날짜
+- 20260915
+- 2026-09-15
+
+저장이 완료되면 생성된 거래 id가 출력됩니다.
+
+---
+
+### 거래 목록 조회
+
+```powershell
+python -m budget_app list --limit 3
+```
+
+최근 거래부터 출력합니다.
+
+---
+
+### 거래 검색
+
+카테고리 검색:
+
+```powershell
+python -m budget_app search --category food
+```
+
+기간 검색:
+
+```powershell
+python -m budget_app search --from 2026-09-01 --to 2026-09-30
+```
+
+타입 검색:
+
+```powershell
+python -m budget_app search --type expense
+```
+
+메모 검색:
+
+```powershell
+python -m budget_app search --q 점심
+```
+
+태그 검색:
+
+```powershell
+python -m budget_app search --tag meal
+```
+
+검색 결과는 최신순으로 출력합니다.
+
+---
+
+### 월별 요약
+
+```powershell
+python -m budget_app summary --month 2026-09 --top 3
+```
+
+다음 내용을 출력합니다.
+
+- 총 수입
+- 총 지출
+- 잔액
+- 지출 카테고리 TOP N
+- 예산 사용률
+- 남은 예산 또는 예산 초과 금액
+
+해당 월에 거래가 없으면 `데이터 없음`을 출력합니다.
+
+---
+
+### 거래 수정
+
+이 프로젝트의 update 기능은
+**대화형 방식으로 고정**했습니다.
+
+먼저 거래 id를 확인합니다.
+
+```powershell
+python -m budget_app list --limit 3
+```
+
+그다음 실제 거래 id를 사용합니다.
+
+```powershell
+python -m budget_app update --id 실제거래ID
+```
+
+`실제거래ID`는 설명용 표현입니다.
+`<거래ID>` 같은 문자를 그대로 입력하지 않습니다.
+
+수정할 값만 새로 입력하고,
+기존 값을 유지하려면 Enter를 누릅니다.
+
+---
+
+### 거래 삭제
+
+```powershell
+python -m budget_app delete --id 실제거래ID
+```
+
+존재하지 않는 id를 입력하면 오류 메시지를 출력합니다.
+
+---
+
+## 4. 카테고리 관리
+
+카테고리 목록:
+
+```powershell
+python -m budget_app category list
+```
+
+카테고리 추가:
+
+```powershell
+python -m budget_app category add
+```
+
+카테고리 삭제:
+
+```powershell
+python -m budget_app category remove
+```
+
+현재 거래에서 사용 중인 카테고리는 삭제할 수 없습니다.
+
+---
+
+## 5. 예산 관리
+
+월 예산 설정:
+
+```powershell
+python -m budget_app budget set --month 2026-09 --amount 600000
+```
+
+월 예산 조회:
+
+```powershell
+python -m budget_app budget get --month 2026-09
+```
+
+예산이 설정된 달의 summary에서는
+예산 사용률과 초과 여부를 함께 확인할 수 있습니다.
+
+---
+
+## 6. 데이터 저장 위치와 형식
+
+기본 저장 폴더:
+
+```text
+./data
+```
+
+기본 저장 파일:
+
+```text
+data/transactions.jsonl
+data/categories.jsonl
+data/budgets.jsonl
+```
+
+세 파일 모두 JSONL 형식을 사용합니다.
+
+JSONL은 한 줄에 JSON 객체 하나를 저장하는 형식입니다.
+
+예:
+
+```json
+{"id":"abc","type":"expense","date":"2026-09-15","amount":15000,"category":"food","memo":"점심","tags":["meal"]}
+```
+
+프로그램을 종료하고 다시 실행해도
+파일에 저장된 거래, 카테고리, 예산 데이터는 유지됩니다.
+
+---
+
+## 7. 데이터 저장 폴더 변경
+
+기본 `data` 폴더 대신 다른 폴더를 사용할 수 있습니다.
+
+`--data-dir`은 command 앞에 사용합니다.
+
+예:
+
+```powershell
+python -m budget_app --data-dir test_data category list
+```
+
+이 경우 데이터는 `test_data` 폴더에 저장됩니다.
+
+---
+
+## 8. CSV 내보내기
+
+월 기준 export:
+
+```powershell
+python -m budget_app export --out export.csv --month 2026-09
+```
+
+기간 기준 export:
+
+```powershell
+python -m budget_app export --out export.csv --from 2026-09-01 --to 2026-09-30
+```
+
+export는 다음 중 하나의 조건이 반드시 필요합니다.
+
+- `--month YYYY-MM`
+- `--from YYYY-MM-DD --to YYYY-MM-DD`
+
+---
+
+## 9. CSV 가져오기
+
+실제 존재하는 CSV 파일을 지정해야 합니다.
+
+예:
+
+```powershell
+python -m budget_app import --from import_test.csv
+```
+
+가져오기 결과는 다음처럼 처리 건수를 출력합니다.
+
+```text
+[완료] imported=1, skipped=1
+```
+
+잘못된 행이 있어도 전체 import를 중단하지 않고
+해당 행만 skipped 처리합니다.
+
+---
+
+## 10. CSV 스키마
+
+CSV 파일은 UTF-8, 헤더 포함 형식을 사용합니다.
+
+필드 순서:
+
+```text
+date,type,category,amount,memo,tags
+```
+
+| column | 필수 | 설명 |
+|---|---|---|
+| date | Y | YYYY-MM-DD |
+| type | Y | income / expense |
+| category | Y | 등록된 카테고리 |
+| amount | Y | 0보다 큰 정수 |
+| memo | N | 문자열 |
+| tags | N | 쉼표로 구분한 문자열 |
+
+---
+
+## 11. 프로젝트 구조
+
+```text
+budget_app/
+├── __init__.py
+├── __main__.py
+├── cli.py
+├── csv_service.py
+├── decorators.py
+├── models.py
+├── repository.py
+└── service.py
+
+data/
+├── transactions.jsonl
+├── categories.jsonl
+└── budgets.jsonl
+
+tests/
+└── test_budget_app.py
+```
+
+주요 역할:
+
+- `models.py`: 거래 데이터 구조 정의
+- `repository.py`: JSONL 파일 저장과 읽기
+- `service.py`: 검증과 업무 규칙 처리
+- `cli.py`: 명령어와 사용자 입력/출력 처리
+- `csv_service.py`: CSV import/export 처리
+- `decorators.py`: 공통 기능 데코레이터
+- `tests/`: 자동 테스트
+
+---
+
+## 12. 제너레이터
+
+`TransactionRepository.iter_transactions()`는
+`yield`를 사용하여 거래를 한 줄씩 읽습니다.
+
+파일 전체를 한 번에 메모리에 올리지 않고
+필요한 데이터를 순서대로 처리할 수 있습니다.
+
+`list`는 `deque(maxlen=limit)`를 사용하여
+필요한 최근 거래 수만 메모리에 유지합니다.
+
+검색도 Repository에서는 한 줄씩 읽지만,
+현재 구현은 최신순 출력을 위해 검색 결과를
+`deque`에 모은 뒤 역순으로 출력합니다.
+
+따라서 검색 결과가 매우 많아질 경우에는
+추가적인 메모리를 사용할 수 있다는 한계가 있습니다.
+
+---
+
+## 13. 데코레이터
+
+`decorators.py`에 `measure_time` 데코레이터를 구현했습니다.
+
+CSV export 기능에 실제 적용하여
+함수 실행 시간을 자동으로 측정합니다.
+
+```text
+[실행 시간] export_transactions: 0.000123초
+```
+
+공통 기능을 본래 업무 코드와 분리하여
+코드 중복을 줄이고 유지보수를 쉽게 하기 위해 사용했습니다.
+
+---
+
+## 14. 타입 힌트
+
+함수의 입력값과 반환값에 타입 힌트를 적용했습니다.
+
+예:
+
+```python
+def get_budget(
+    self,
+    month: str
+) -> int | None:
+```
+
+이 코드는 `month`가 문자열이며,
+결과는 정수 또는 `None`일 수 있다는 뜻입니다.
+
+타입 힌트는 Python 실행 자체를 강제로 제한하는 기능이 아니라,
+코드의 입출력 계약을 사람이 쉽게 이해하고
+IDE와 정적 분석 도구가 오류를 찾기 쉽게 해주는 역할을 합니다.
+
+---
+
+## 15. 오류 처리
+
+잘못된 입력에서는 긴 Python traceback을 사용자에게 노출하지 않고
+원인과 해결 힌트를 출력하도록 처리했습니다.
+
+오류 발생 시 `SystemExit(1)`을 사용하여
+0이 아닌 종료 코드로 프로그램을 종료합니다.
+
+정상 실행은 종료 코드 0,
+오류 실행은 0이 아닌 종료 코드가 됩니다.
+
+---
+
+## 16. 자동 테스트
+
+자동 테스트 실행:
+
+```powershell
+python -m unittest discover -s tests -v
+```
+
+테스트 항목에는 다음 기능이 포함됩니다.
+
+- 거래 추가/목록
+- 잘못된 금액 검증
+- 검색
+- 월별 요약
+- 수정
+- 삭제
+- 카테고리 추가/삭제
+- 사용 중 카테고리 삭제 방지
+- 예산 저장/조회
+- 예산 사용률
+- CSV export
+- CSV import
+
+---
+
+## 17. 사용한 주요 표준 라이브러리
+
+- `argparse`
+- `csv`
+- `json`
+- `pathlib`
+- `dataclasses`
+- `datetime`
+- `uuid`
+- `collections`
+- `functools`
+- `time`
+- `typing`
+- `unittest`
+- `tempfile`
+
+외부 패키지는 사용하지 않았습니다.
