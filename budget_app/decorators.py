@@ -1,132 +1,24 @@
-from functools import wraps
-from time import perf_counter
 from typing import Callable, TypeVar
 
-
-# ==========================================================
-# [1] 데코레이터에서 사용할 타입 변수
-# ==========================================================
-# TypeVar는
-# "원래 함수가 어떤 값을 반환하든
-#  그 반환 타입을 그대로 유지한다"
-# 라는 의미로 사용함
-# ==========================================================
-
-T = TypeVar("T")
+T = TypeVar('T')
 
 
-# ==========================================================
-# [2] 함수 실행 시간 측정 데코레이터
-# ==========================================================
-# 역할:
-# - 함수 실행 직전 시간을 기록
-# - 함수 실행
-# - 함수 실행 직후 시간을 기록
-# - 두 시간의 차이를 계산해 출력
-#
-# 사용 예:
-#
-# @measure_time
-# def test():
-#     ...
-#
-# 이렇게 하면 test()를 호출할 때
-# 실행 시간이 자동 측정됨
-# ==========================================================
-
-def measure_time(
-    func: Callable[..., T]
-) -> Callable[..., T]:
-
-    # ------------------------------------------------------
-    # wraps(func)
-    # ------------------------------------------------------
-    # 데코레이터를 씌운 뒤에도
-    # 원래 함수의 이름과 설명 등의 정보를 유지함
-    # ------------------------------------------------------
-
-    @wraps(func)
-    def wrapper(
-        *args,
-        **kwargs,
-    ) -> T:
-
-        # 함수 시작 직전 시간
-        start_time = perf_counter()
-
-        # 원래 함수 실행
-        result = func(
-            *args,
-            **kwargs,
-        )
-
-        # 함수 종료 직후 시간
-        end_time = perf_counter()
-
-        # 걸린 시간 계산
-        elapsed_time = (
-            end_time - start_time
-        )
-
-        print(
-            f"[실행 시간] "
-            f"{func.__name__}: "
-            f"{elapsed_time:.6f}초"
-        )
-
-        # 원래 함수의 결과는 그대로 반환
-        return result
-
-    return wrapper
-
-# ==========================================================
-# [3] 프로그램 입력 중단 안전 처리 데코레이터
-# ==========================================================
-# 역할:
-# - 사용자가 Ctrl+C를 눌러 프로그램을 중단했을 때
-#   긴 traceback 대신 짧은 안내 메시지를 출력함
-# - 입력이 갑자기 끝나는 EOFError도 처리함
-#
-# 왜 필요한가:
-# - 평가 기준에서 오류 상황에 traceback을 보여주면 안 됨
-# - 프로그램 진입점에서 공통으로 처리하면
-#   여러 명령마다 같은 예외 처리를 반복하지 않아도 됨
-# ==========================================================
-
-def safe_entry(
-    func: Callable[..., T]
-) -> Callable[..., T]:
-
-    @wraps(func)
-    def wrapper(
-        *args,
-        **kwargs,
-    ) -> T:
-
+# 진입점에서 사용자 오류를 안내하고 실패 코드로 종료한다.
+def safe_entry(func: Callable[..., T]) -> Callable[..., T]:
+    # 감싼 함수를 실행하고 예외를 공통 방식으로 처리한다.
+    def wrapper(*args, **kwargs) -> T:
         try:
-            return func(
-                *args,
-                **kwargs,
-            )
-
+            return func(*args, **kwargs)
         except KeyboardInterrupt:
-
-            print(
-                "\n[중단] 사용자가 프로그램 실행을 중단했습니다."
-            )
-
-            raise SystemExit(1)
-
+            print('\n[중단] 사용자가 프로그램 실행을 중단했습니다.')
         except EOFError:
-
-            print(
-                "\n[입력 오류] 입력이 예상보다 일찍 종료되었습니다."
-            )
-
-            print(
-                "[힌트] 다시 실행한 뒤 필요한 값을 입력해주세요."
-            )
-
-            raise SystemExit(1)
-
+            print('\n[입력 오류] 입력이 예상보다 일찍 종료되었습니다.')
+            print('[힌트] 다시 실행한 뒤 필요한 값을 입력해주세요.')
+        except ValueError as error:
+            print(f'[입력 오류] {error}')
+            print('[힌트] 입력 형식과 값을 확인한 뒤 다시 실행해주세요.')
+        except OSError as error:
+            print(f'[파일 오류] {error}')
+            print('[힌트] 파일 경로와 접근 권한을 확인해주세요.')
+        raise SystemExit(1)
     return wrapper
