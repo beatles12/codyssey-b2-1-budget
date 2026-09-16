@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>B2-1 비공개 공부노트</title>
+<style>
+:root{--bg:#f5f7fb;--card:#fff;--ink:#172033;--muted:#667085;--line:#e1e6ee;--blue:#2563eb;--navy:#142b4f;--green:#07875f;--red:#be123c;--purple:#6d28d9}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font-family:"Malgun Gothic",system-ui,sans-serif;line-height:1.62}
+.hero{background:linear-gradient(125deg,#3a0b20,#831843 55%,#be185d);color:#fff;padding:38px 22px}.hero>div{max-width:1260px;margin:auto}
+.private{display:inline-block;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.14);font-size:12px;font-weight:900}.hero h1{font-size:44px;margin:10px 0 8px}.hero p{max-width:950px;color:#ffe8f0}
+.wrap{max-width:1260px;margin:auto;padding:0 18px 70px}.nav{position:sticky;top:0;z-index:9;margin-top:-18px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:9px;display:flex;gap:6px;flex-wrap:wrap;box-shadow:0 10px 28px rgba(20,43,79,.08)}
+.nav a,.nav button{border:0;background:#f7f9fc;color:#334155;padding:8px 10px;border-radius:8px;text-decoration:none;font-weight:900;font-size:12px;cursor:pointer}
+section{margin-top:26px;scroll-margin-top:70px}.title{display:flex;gap:10px;align-items:flex-start;margin-bottom:12px}.num{width:32px;height:32px;background:var(--navy);color:#fff;border-radius:9px;display:grid;place-items:center;font-weight:900}
+h2{margin:0;font-size:27px}.sub{margin:3px 0;color:var(--muted)}.card{background:#fff;border:1px solid var(--line);border-radius:15px;padding:16px}.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.tag{display:inline-block;padding:3px 7px;border-radius:999px;background:#eaf2ff;color:#1d4ed8;font-size:11px;font-weight:900}.answer{background:#10264a;color:#fff;border-radius:11px;padding:12px 13px;margin:10px 0}.answer b{color:#bfdbfe}
+.alert{border-left:5px solid #d94667;background:#fff0f3;padding:12px 14px;border-radius:10px}.good{border-left:5px solid #0f9f6e;background:#ecfdf5;padding:12px 14px;border-radius:10px}
+.arch{display:grid;grid-template-columns:1fr 32px 1fr 32px 1.2fr 32px 1fr 32px 1fr;gap:7px;align-items:stretch}.box{border:2px solid #dce3ed;border-radius:12px;padding:11px;background:#fff}.box b{display:block}.box small{display:block;color:#667085;margin-top:4px}.user{background:#faf7ff;border-color:#bba3f7}.cli{background:#f8fbff;border-color:#87b5f5}.svc{background:#f8fffb;border-color:#77d2ae}.repo{background:#fffaf4;border-color:#f0ac73}.data{background:#fff8fa;border-color:#efa0af}.arr{display:grid;place-items:center;font-size:24px;color:#8795aa;font-weight:900}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:11px}.tabs button{border:1px solid #d7dfeb;background:#fff;padding:7px 10px;border-radius:9px;font-weight:900;cursor:pointer}.tabs button.active{background:#172033;color:#fff}
+.flowgrid{display:grid;grid-template-columns:1.5fr .8fr;gap:12px}.vflow{display:grid;justify-items:center}.node{width:min(700px,94%);border:2px solid #79aef7;border-radius:11px;padding:8px 10px;text-align:center;font-weight:900;background:#fbfdff}.node small{display:block;color:#667085;font-weight:700}.down{height:27px;display:grid;place-items:center;color:#8795aa;font-size:22px}.reason{border:1px solid #e1e6ee;border-radius:10px;padding:9px;margin:7px 0;background:#fbfcfe}.reason b{display:block}.reason small{color:#667085}
+.study{background:#fff;border:1px solid var(--line);border-radius:14px;margin:9px 0;overflow:hidden}.head{padding:13px 15px;font-weight:900;cursor:pointer;display:flex;justify-content:space-between}.body{display:none;border-top:1px solid #edf0f4;padding:14px}.study.open .body{display:block}
+.cols{display:grid;grid-template-columns:140px 1fr;gap:6px 10px;font-size:13px}.lbl{font-weight:900;color:#667085}.code{background:#111827;color:#e5eefc;border-radius:10px;padding:11px 12px;font:12px Consolas,monospace;white-space:pre-wrap;overflow:auto}.cmd{display:grid;grid-template-columns:1fr auto;gap:7px;background:#f7f9fc;border:1px solid #e5eaf1;border-radius:9px;padding:8px}.cmd code{font:12px Consolas,monospace;overflow:auto;white-space:nowrap}.copy{border:0;background:#eaf2ff;color:#1d4ed8;padding:7px 9px;border-radius:8px;font-weight:900;cursor:pointer}
+.quizgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.quiz{background:#fff;border:1px solid var(--line);border-radius:13px;padding:13px}.quiz h3{font-size:15px;margin:0 0 8px}.qa{display:none;background:#f7f9fc;border-radius:9px;padding:9px;margin-top:8px;color:#475467}.quiz.show .qa{display:block}.qbtn{border:0;background:#172033;color:#fff;padding:7px 9px;border-radius:8px;font-weight:900;cursor:pointer}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:9px;border-bottom:1px solid #e8ecf2;text-align:left;vertical-align:top}th{background:#f7f9fc}
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#111827;color:#fff;padding:9px 13px;border-radius:8px;opacity:0;transition:.2s}#toast.show{opacity:1}
+@media(max-width:900px){.grid2,.quizgrid,.flowgrid{grid-template-columns:1fr}.arch{grid-template-columns:1fr}.arr{transform:rotate(90deg)}.cols{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header class="hero"><div><span class="private">🔒 비공개 공부용 · GitHub 업로드 금지</span><h1>B2-1 평가 대비 공부노트</h1><p>공식 미션 요구사항과 현재 최종 코드 기준입니다. 실제 평가문항 원문이 아니라, 스스로 설명할 수 있어야 하는 핵심을 <b>질문의 뜻 → 30초 답변 → 보여줄 코드 → 실행 → 꼬리질문 → 주의점</b> 순서로 정리했습니다.</p></div></header>
+
+<main class="wrap">
+<nav class="nav"><a href="#start">8개 핵심</a><a href="#arch">전체 구조</a><a href="#flows">10개 명령</a><a href="#core">핵심 개념</a><a href="#quiz">자가 퀴즈</a><a href="#demo">5분 시연</a><a href="#danger">주의점</a><button onclick="openAll()">모두 펼치기</button><button onclick="closeAll()">모두 접기</button></nav>
+
+<section id="start"><div class="title"><div class="num">1</div><div><h2>평가 직전, 이것부터 8개</h2><p class="sub">문장 자체보다 뜻을 이해합니다.</p></div></div>
+<div class="grid2">
+<div class="card"><span class="tag">구조</span><h3>CLI → Service → Repository</h3><p>CLI는 입력/출력, Service는 검증과 업무 규칙, Repository는 파일 읽기/쓰기.</p></div>
+<div class="card"><span class="tag">진입점</span><h3>@safe_entry</h3><p>main() 전체를 감싸 공통 오류 처리와 비정상 종료 코드를 한 곳에서 처리.</p></div>
+<div class="card"><span class="tag">Generator</span><h3>yield로 한 줄씩</h3><p>iter_transactions()가 JSONL을 한 줄씩 읽어 파일 전체를 메모리에 올리지 않음.</p></div>
+<div class="card"><span class="tag">list</span><h3>deque(maxlen)</h3><p>최근 N건만 메모리에 유지.</p></div>
+<div class="card"><span class="tag">update/delete</span><h3>.tmp → replace</h3><p>임시 파일을 완성한 뒤 원본과 교체.</p></div>
+<div class="card"><span class="tag">category</span><h3>사용 중이면 삭제 차단</h3><p>기존 거래의 의미가 깨지지 않도록 무결성 보호.</p></div>
+<div class="card"><span class="tag">저장 형식</span><h3>내부 JSONL / 외부 CSV</h3><p>내부 영구 저장과 외부 교환의 역할을 분리.</p></div>
+<div class="card"><span class="tag">Type Hint</span><h3>입출력 계약 표시</h3><p>실행 강제가 아니라 사람이 이해하고 IDE가 검사하기 쉽게 함.</p></div>
+</div></section>
+
+<section id="arch"><div class="title"><div class="num">2</div><div><h2>전체 프로그램 구조</h2><p class="sub">어떤 질문을 받아도 먼저 이 그림을 머릿속에 띄웁니다.</p></div></div>
+<div class="card">
+<div class="arch">
+<div class="box user"><b>사용자</b><small>python -m budget_app [명령]</small></div><div class="arr">→</div>
+<div class="box cli"><b>__main__.py</b><small>@safe_entry → main() → run_cli()</small></div><div class="arr">→</div>
+<div class="box cli"><b>cli.py</b><small>명령 해석 · input · print</small></div><div class="arr">→</div>
+<div class="box svc"><b>Service</b><small>Transaction / Category / Budget / Csv</small></div><div class="arr">→</div>
+<div class="box repo"><b>Repository</b><small>JSONL 읽기 · 쓰기</small></div>
+</div>
+<div class="arch" style="margin-top:8px;grid-template-columns:1fr 32px 1fr 32px 1fr">
+<div class="box data"><b>Transaction dataclass</b><small>거래 한 건의 모양</small></div><div class="arr">↔</div>
+<div class="box data"><b>3개 JSONL</b><small>transactions · categories · budgets</small></div><div class="arr">↔</div>
+<div class="box svc"><b>CsvService</b><small>CSV import / export</small></div>
+</div>
+</div>
+<div class="answer"><b>30초 답변</b><br>“프로그램은 __main__.py에서 시작하고 safe_entry가 전체 오류를 감쌉니다. cli.py가 명령과 사용자 입력을 처리하고, 실제 검증과 업무 규칙은 Service에서 처리합니다. Service는 Repository를 통해 JSONL 파일을 읽고 쓰며, Transaction dataclass가 거래 한 건의 구조를 정의합니다. CSV 가져오기와 내보내기는 CsvService로 분리했습니다.”</div>
+</section>
+
+<section id="flows"><div class="title"><div class="num">3</div><div><h2>10개 명령 호출 흐름</h2><p class="sub">버튼을 눌러 함수가 실제로 어디로 이동하는지 확인합니다.</p></div></div>
+<div class="card"><div class="tabs" id="tabs"></div><div class="flowgrid"><div class="card"><h3 id="ftitle"></h3><div class="vflow" id="chart"></div></div><div class="card"><h3>왜 필요한가</h3><div id="reasons"></div><div class="answer" id="fanswer"></div></div></div></div>
+<div id="studyCards"></div>
+</section>
+
+<section id="core"><div class="title"><div class="num">4</div><div><h2>핵심 개념 공부 카드</h2><p class="sub">질문의 뜻부터 답변 주의점까지.</p></div></div>
+<div class="study"><div class="head" onclick="toggle(this)">Generator / yield는 왜 썼나?<span>▼</span></div><div class="body"><div class="cols"><div class="lbl">질문의 뜻</div><div>파일을 왜 한 번에 다 읽지 않았는가?</div><div class="lbl">보여줄 코드</div><div>repository.py → iter_transactions()</div></div><div class="code">for line in file:
+    ...
+    yield Transaction(...)</div><div class="answer"><b>30초 답변</b><br>“Generator는 값을 한꺼번에 반환하지 않고 yield로 하나씩 전달합니다. JSONL을 한 줄씩 읽기 때문에 파일 전체를 한 번에 메모리에 올리지 않습니다. list는 deque(maxlen)를 함께 사용해 최근 N건만 유지합니다.”</div><div class="alert"><b>주의:</b> search는 파일 읽기는 스트리밍이지만 최신순 출력을 위해 일치 결과는 deque에 모읍니다.</div></div></div>
+<div class="study"><div class="head" onclick="toggle(this)">Decorator / safe_entry는 왜 필요한가?<span>▼</span></div><div class="body"><div class="code">@safe_entry
+def main() -> None:
+    run_cli()</div><div class="answer"><b>30초 답변</b><br>“사용자에게 보여주는 공통 오류 처리를 진입점 한 곳으로 모았습니다. 그래서 여러 계층에 같은 try/except를 반복하지 않고, 오류가 나면 traceback 대신 원인과 해결 힌트를 같은 형식으로 보여줍니다. 오류 종료는 SystemExit(1)입니다.”</div></div></div>
+<div class="study"><div class="head" onclick="toggle(this)">Type Hint는 실제로 무엇을 해주나?<span>▼</span></div><div class="body"><div class="code">def get_budget(self, month: str) -> int | None:</div><div class="answer"><b>30초 답변</b><br>“month는 문자열이고 반환값은 정수 또는 None일 수 있다는 계약을 표시합니다. 실행 중 자동으로 강제하는 기능은 아니고, 사람이 코드를 이해하고 IDE가 실수를 찾기 쉽게 합니다.”</div></div></div>
+<div class="study"><div class="head" onclick="toggle(this)">JSONL과 CSV를 왜 둘 다 쓰나?<span>▼</span></div><div class="body"><table><tr><th></th><th>JSONL</th><th>CSV</th></tr><tr><td>역할</td><td>내부 영구 저장</td><td>외부 교환</td></tr><tr><td>tags</td><td>list 표현 쉬움</td><td>쉼표 문자열 변환</td></tr><tr><td>사람/Excel</td><td>상대적으로 불편</td><td>편함</td></tr></table><div class="answer"><b>30초 답변</b><br>“Transaction 구조와 tags 같은 리스트는 JSON과 잘 맞고, JSONL은 한 줄에 한 거래라 Generator와도 잘 맞습니다. CSV는 표 형태라 사람이 보기 쉽고 다른 프로그램과 교환하기 편해 import/export에 사용했습니다.”</div></div></div>
+<div class="study"><div class="head" onclick="toggle(this)">update/delete가 왜 전체 파일을 다시 쓰나?<span>▼</span></div><div class="body"><div class="answer"><b>30초 답변</b><br>“JSONL 중간 한 줄을 안전하게 직접 덮어쓰기 어렵기 때문에 .tmp 파일을 새로 만들고, 성공하면 replace()로 원본과 교체합니다. 원본 중간 손상 위험을 줄이는 방식입니다.”</div><div class="code">temp_path = self.file_path.with_suffix('.tmp')
+...
+temp_path.replace(self.file_path)</div></div></div>
+<div class="study"><div class="head" onclick="toggle(this)">10만 건이 되면 어디가 느려지나?<span>▼</span></div><div class="body"><div class="answer"><b>30초 답변</b><br>“검색은 JSONL 전체를 순회할 수 있고, search는 일치 결과를 deque에 모으므로 결과가 많으면 메모리가 늘어납니다. update/delete는 파일 전체를 재작성합니다. 데이터가 커지면 SQLite, 인덱스, pagination, ORDER BY/LIMIT으로 개선할 수 있습니다.”</div></div></div>
+</section>
+
+<section id="quiz"><div class="title"><div class="num">5</div><div><h2>자가 퀴즈</h2><p class="sub">먼저 소리 내서 답한 뒤 답 보기를 누릅니다.</p></div></div><div class="quizgrid" id="quizgrid"></div></section>
+
+<section id="demo"><div class="title"><div class="num">6</div><div><h2>5분 시연 루틴</h2><p class="sub">복사해서 PowerShell에 붙여넣기.</p></div></div>
+<div class="card">
+<div class="cmd"><code>python -m budget_app --help</code><button class="copy" data-copy="python -m budget_app --help">복사</button></div><p>① 10개 명령 구조 확인</p>
+<div class="cmd"><code>python -m budget_app --data-dir test_data/demo add</code><button class="copy" data-copy="python -m budget_app --data-dir test_data/demo add">복사</button></div><p>② 연습 데이터 1건 추가</p>
+<div class="cmd"><code>python -m budget_app --data-dir test_data/demo list</code><button class="copy" data-copy="python -m budget_app --data-dir test_data/demo list">복사</button></div><p>③ 저장과 ID 확인</p>
+<div class="cmd"><code>python -m budget_app --data-dir test_data/demo summary --month 2026-09 --top 3</code><button class="copy" data-copy="python -m budget_app --data-dir test_data/demo summary --month 2026-09 --top 3">복사</button></div><p>④ 요약 확인</p>
+<div class="cmd"><code>python -m unittest discover -s tests -v</code><button class="copy" data-copy="python -m unittest discover -s tests -v">복사</button></div><p>⑤ 12 tests OK 확인</p>
+</div></section>
+
+<section id="danger"><div class="title"><div class="num">7</div><div><h2>말할 때 주의할 것</h2></div></div>
+<div class="grid2">
+<div class="alert"><b>search는 완전한 상수 메모리가 아님.</b><br>파일은 한 줄씩 읽지만 일치 결과는 deque에 모음.</div>
+<div class="alert"><b>Type Hint는 런타임 강제가 아님.</b><br>계약 표시와 가독성/IDE 도움.</div>
+<div class="alert"><b>CSV import는 행 단위 try/except가 아님.</b><br>_prepare_import_row()에서 사전 검증 후 skipped 처리.</div>
+<div class="alert"><b>update는 대화형 방식.</b><br>update --id 실제ID 후 Enter면 기존 값 유지.</div>
+<div class="alert"><b>공식 미션이 모든 try/except를 데코레이터로 강제한 것은 아님.</b><br>현재 프로젝트가 중복을 줄이기 위해 safe_entry 중심으로 설계한 것.</div>
+<div class="alert"><b>사용 중 카테고리 삭제 금지.</b><br>TransactionRepository까지 확인해 무결성 보호.</div>
+</div></section>
+
+<section><div class="good"><b>마지막 10분 복습 순서:</b> 전체 구조 30초 → add 흐름 → Generator → Decorator → update/delete 안전성 → JSONL vs CSV → 10만 건 한계 → 실제 명령 2~3개 시연.</div></section>
+
+<footer style="text-align:center;color:#667085;font-size:12px;margin-top:36px">비공개 개인 공부자료 · 공식 B2-1 미션 요구사항 + 최신 프로젝트 코드 기준</footer>
+</main>
+<div id="toast">복사했습니다.</div>
+
+<script>
+const flows={
+add:{title:'add · 거래 추가',nodes:[['python -m budget_app add','입력 시작'],['cli.py 입력','날짜·type·category·amount·memo·tags'],['normalize_date_input()','날짜 형식 정리'],['choose_transaction_type()','income/expense 선택'],['choose_category()','등록 카테고리 선택'],['parse_amount()','문자열 → int'],['TransactionService.add_transaction()','거래 규칙 검증'],['get_transaction_validation_error()','공통 검증'],['uuid4()','고유 ID'],['Transaction(...)','객체 생성'],['TransactionRepository.add()','파일 저장'],['transactions.jsonl','한 줄 append']],reasons:[['입력과 규칙 분리','CLI는 입력, Service는 검증'],['검증 재사용','update/import와 같은 규칙 사용'],['UUID','ID 중복 방지'],['JSONL append','추가 시 전체 재작성 불필요']],answer:'“add는 CLI에서 입력을 받고 Service에서 검증한 뒤 UUID를 붙여 Transaction을 만들고 Repository가 JSONL에 저장합니다.”'},
+list:{title:'list · 최근 거래',nodes:[['list --limit N','기본 20'],['list_transactions()','최근 N건 규칙'],['iter_transactions()','한 줄씩 yield'],['deque(maxlen=limit)','최근 N건 유지'],['reversed()','최신순'],['CLI 출력','화면 표시']],reasons:[['Generator','파일 전체를 한꺼번에 메모리에 올리지 않음'],['deque','최근 N건만 유지']],answer:'“Repository가 한 줄씩 yield하고 Service는 deque(maxlen)로 최근 N건만 유지한 뒤 최신순으로 반환합니다.”'},
+search:{title:'search · 조건 검색',nodes:[['search 옵션','from/to/category/type/q/tag'],['search_transactions()','조건 검증'],['iter_transactions()','한 줄씩 읽기'],['조건 필터링','조건 비교'],['matches deque','일치 결과 저장'],['yield pop()','최신순 전달']],reasons:[['스트리밍','파일 읽기는 한 줄씩'],['한계','일치 결과가 많으면 메모리 증가']],answer:'“파일은 한 줄씩 읽지만 최신순 출력을 위해 일치 결과는 deque에 모은 뒤 pop으로 yield합니다.”'},
+summary:{title:'summary · 월 요약',nodes:[['summary --month','월 입력'],['summarize_month()','월 검증'],['iter_transactions()','거래 순회'],['defaultdict(int)','카테고리별 합계'],['수입/지출/잔액','합계 계산'],['get_budget_status()','예산 상태'],['CLI 출력','요약+예산']],reasons:[['defaultdict','0부터 누적 편리'],['BudgetService','예산 규칙 분리']],answer:'“summary는 월 거래를 순회해 수입·지출·잔액과 TOP 카테고리를 계산하고 BudgetService로 예산 상태를 결합합니다.”'},
+update:{title:'update · 거래 수정',nodes:[['update --id 실제ID','대상 지정'],['find_by_id()','현재 거래'],['대화형 입력','Enter=기존 유지'],['update_transaction()','기존+변경 결합'],['공통 검증','최종 거래 재검증'],['update_by_id()','저장'],['.tmp 재작성','새 파일'],['replace()','원본 교체']],reasons:[['재검증','수정 후 전체 유효성 확인'],['임시파일','원본 손상 위험 감소']],answer:'“update는 변경하지 않은 값을 유지하고 전체를 다시 검증한 뒤 .tmp를 완성해 replace로 원본을 교체합니다.”'},
+delete:{title:'delete · 거래 삭제',nodes:[['delete --id 실제ID','대상'],['y 확인','실수 방지'],['delete_transaction()','ID 검사'],['delete_by_id()','삭제'],['.tmp 재작성','대상 제외'],['replace()','교체']],reasons:[['확인 질문','실수 삭제 방지'],['원자적 교체','파일 안전성']],answer:'“delete는 확인과 ID 존재 검사를 거친 뒤 대상만 제외한 임시 파일을 만들고 원본과 교체합니다.”'},
+category:{title:'category · 카테고리',nodes:[['category list/add/remove','하위 명령'],['CategoryService','규칙'],['remove_category()','삭제 요청'],['iter_transactions()','사용 여부 확인'],['사용 중이면 차단','무결성'],['CategoryRepository','파일 반영']],reasons:[['무결성','기존 거래 의미 보호'],['두 저장소','카테고리+거래 둘 다 확인']],answer:'“사용 중인 카테고리는 거래 파일까지 확인해서 삭제를 막아 데이터 무결성을 지킵니다.”'},
+budget:{title:'budget · 예산',nodes:[['budget set/get','월 예산'],['_validate_budget()','월/금액 검증'],['BudgetService','규칙'],['BudgetRepository','저장/조회'],['budgets.jsonl','영구 저장'],['summary 연동','사용률/초과']],reasons:[['책임 분리','예산 규칙 별도'],['영구 저장','재실행 후 유지']],answer:'“BudgetService가 월과 금액을 검증하고 Repository에 저장하며, summary에서 사용률과 초과 여부를 계산합니다.”'},
+export:{title:'export · 내보내기',nodes:[['export --out','조건'],['export_transactions()','조건 검증'],['iter_transactions()','한 줄씩 읽기'],['조건 필터','월/기간'],['csv.DictWriter','CSV 작성'],['export.csv','결과']],reasons:[['형식 분리','내부 JSONL / 외부 CSV'],['고정 스키마','필드 의미 유지']],answer:'“export는 거래를 한 줄씩 읽고 조건에 맞는 행만 DictWriter로 CSV에 저장합니다.”'},
+import:{title:'import · 가져오기',nodes:[['import --from','파일'],['csv.DictReader','헤더/행'],['필수 열 검사','스키마'],['_prepare_import_row()','사전 검증'],['잘못된 행','skipped'],['정상 행','prepared_row'],['add_transaction()','검증/저장 재사용'],['transactions.jsonl','저장']],reasons:[['사전검증','예상 오류를 먼저 검사'],['Service 재사용','검증 중복 감소'],['부분 성공','한 행 오류로 전체 중단하지 않음']],answer:'“각 CSV 행을 먼저 검사하고 정상 행만 add_transaction을 재사용해 저장하며, 잘못된 행은 skipped로 처리합니다.”'}
+};
+const tabs=document.getElementById('tabs');
+Object.keys(flows).forEach((k,i)=>{const b=document.createElement('button');b.textContent=k;b.dataset.k=k;b.onclick=()=>render(k);if(i===0)b.classList.add('active');tabs.appendChild(b)});
+function render(k){const f=flows[k];document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('active',b.dataset.k===k));document.getElementById('ftitle').textContent=f.title;const c=document.getElementById('chart');c.innerHTML='';f.nodes.forEach((n,i)=>{const d=document.createElement('div');d.className='node';d.innerHTML=n[0]+'<small>'+n[1]+'</small>';c.appendChild(d);if(i<f.nodes.length-1){const a=document.createElement('div');a.className='down';a.textContent='↓';c.appendChild(a)}});document.getElementById('reasons').innerHTML=f.reasons.map(x=>'<div class="reason"><b>'+x[0]+'</b><small>'+x[1]+'</small></div>').join('');document.getElementById('fanswer').innerHTML='<b>30초 답변</b><br>'+f.answer}
+render('add');
+
+const study=[
+['add','거래 추가 과정 전체를 설명해보세요.','새 거래를 검증하고 UUID를 붙여 객체로 만든 뒤 JSONL에 저장','service.py add_transaction() / repository.py add()','python -m budget_app --data-dir test_data/demo add','왜 UUID? → ID 중복 방지. 왜 Service 검증? → UI와 업무 규칙 분리.','CLI가 모든 일을 한다고 말하지 않기.'],
+['list','list가 메모리를 어떻게 아끼나요?','한 줄씩 yield + deque(maxlen)로 최근 N건만 유지','iter_transactions() / list_transactions()','python -m budget_app --data-dir test_data/demo list --limit 3','deque(maxlen)의 장점? → 최대 N건만 유지.','Generator와 deque 둘 다 언급.'],
+['search','search의 Generator 사용을 정확히 설명해보세요.','파일은 한 줄씩 읽지만 최신순 위해 결과는 deque에 모음','search_transactions()','python -m budget_app --data-dir test_data/demo search --category food','완전 스트리밍? → 읽기는 스트리밍, 결과는 모음.','“검색 결과도 전혀 안 모은다” 금지.'],
+['summary','summary는 무엇을 계산하나요?','수입·지출·잔액·TOP + 예산 사용률/초과','summarize_month() / get_budget_status()','python -m budget_app --data-dir test_data/demo summary --month 2026-09 --top 3','defaultdict 이유? → 0부터 누적 편리.','잔액 = 수입 - 지출.'],
+['update','update 안전성을 설명해보세요.','기존 거래 조회 → 변경값 결합 → 재검증 → .tmp → replace','update_transaction() / update_by_id()','python -m budget_app --data-dir test_data/demo update --id 실제ID','왜 원본 직접 수정 안함? → 손상 위험 감소.','실제 ID 필요.'],
+['delete','delete의 안전장치는?','y 확인 + ID 확인 + .tmp 재작성 후 replace','delete_transaction() / delete_by_id()','python -m budget_app --data-dir test_data/demo delete --id 실제ID','없는 ID? → 사용자 오류 메시지.','확인 질문과 임시파일 둘 다.'],
+['category','사용 중 카테고리를 왜 못 지우나요?','기존 거래의 의미가 깨지는 것을 막기 위해','CategoryService.remove_category()','python -m budget_app --data-dir test_data/demo category remove','어떻게 확인? → 거래를 순회.','CategoryRepository만 본다고 말하지 않기.'],
+['budget','예산과 summary는 어떻게 연결되나요?','월 예산을 저장하고 summary에서 총지출과 결합해 사용률/초과 계산','BudgetService / BudgetRepository','python -m budget_app --data-dir test_data/demo budget set --month 2026-09 --amount 500000','예산 없으면? → 설정 없음 출력.','예산도 영구 저장.'],
+['export','export 흐름은?','조건 검증 → 거래 한 줄씩 → 필터 → DictWriter','CsvService.export_transactions()','python -m budget_app --data-dir test_data/demo export --out test_data/demo/out.csv --month 2026-09','조건은? → month 또는 from/to.','month와 from/to 동시 사용 안함.'],
+['import','잘못된 CSV 행은?','사전검증 후 잘못된 행 skipped, 정상 행은 add_transaction 재사용','_prepare_import_row() / import_transactions()','python -m budget_app --data-dir test_data/demo import --from import_test.csv','왜 add 재사용? → 검증 중복 감소.','행 단위 try/except가 아니라 사전검증.']
+];
+const holder=document.getElementById('studyCards');
+study.forEach((x,i)=>{const d=document.createElement('div');d.className='study';d.innerHTML='<div class="head" onclick="toggle(this)"><span>'+(i+1)+'. '+x[0]+' · '+x[1]+'</span><span>▼</span></div><div class="body"><div class="cols"><div class="lbl">질문의 뜻</div><div>'+x[2]+'</div><div class="lbl">보여줄 코드</div><div>'+x[3]+'</div><div class="lbl">실제 실행</div><div><div class="cmd"><code>'+x[4]+'</code><button class="copy" data-copy="'+x[4]+'">복사</button></div></div><div class="lbl">꼬리질문</div><div>'+x[5]+'</div><div class="lbl">주의점</div><div>'+x[6]+'</div></div><div class="answer"><b>30초 답변</b><br>'+flows[x[0]].answer+'</div></div>';holder.appendChild(d)});
+
+const qs=[
+['전체 구조를 30초 안에 설명해보세요.','__main__ → safe_entry → cli → Service → Repository → JSONL과 각 책임을 말합니다.'],
+['Generator와 return의 차이는?','return은 함수가 끝나지만 yield는 값을 하나 전달한 뒤 상태를 유지하고 다음 호출에서 이어집니다.'],
+['list와 search의 메모리 차이는?','list는 최근 N건만 deque(maxlen)에 유지. search는 일치 결과를 deque에 모아 결과가 많으면 메모리가 늘어납니다.'],
+['safe_entry가 하는 일은?','공통 사용자 오류를 한 곳에서 처리하고 traceback 대신 원인+힌트를 출력하며 오류 종료는 1을 사용합니다.'],
+['Type Hint가 타입을 자동으로 막나요?','아니요. 실행 강제가 아니라 계약 표시와 가독성, IDE 검사 도움입니다.'],
+['JSONL을 선택한 이유는?','Transaction 구조와 잘 맞고 tags 같은 list를 표현하기 쉬우며 한 줄 스트리밍에 적합합니다.'],
+['CSV는 왜 따로 쓰나요?','표로 보기 쉽고 다른 프로그램과 교환하기 편하기 때문입니다.'],
+['update/delete는 왜 .tmp를 쓰나요?','새 파일을 완성한 뒤 replace해 원본 중간 손상 위험을 줄이기 위해서입니다.'],
+['카테고리 삭제 전 왜 거래를 보나요?','사용 중 카테고리를 지우면 기존 거래 의미가 깨져 무결성이 손상되기 때문입니다.'],
+['10만 건이면 무엇을 개선하나요?','SQLite, 인덱스, pagination, ORDER BY/LIMIT, id 기반 UPDATE/DELETE를 고려합니다.'],
+['import의 잘못된 행 처리는?','_prepare_import_row()로 먼저 검사하고 잘못된 행은 skipped 후 다음 행을 처리합니다.'],
+['정상/오류 종료 코드는?','정상 0, 오류는 0이 아닌 값이며 현재 safe_entry는 1을 사용합니다.']
+];
+const qg=document.getElementById('quizgrid');qs.forEach((q,i)=>{const d=document.createElement('div');d.className='quiz';d.innerHTML='<h3>Q'+(i+1)+'. '+q[0]+'</h3><button class="qbtn" onclick="this.parentElement.classList.toggle(\'show\');this.textContent=this.parentElement.classList.contains(\'show\')?\'답 숨기기\':\'답 보기\'">답 보기</button><div class="qa">'+q[1]+'</div>';qg.appendChild(d)});
+
+function toggle(h){h.parentElement.classList.toggle('open')}
+function openAll(){document.querySelectorAll('.study').forEach(x=>x.classList.add('open'));flash('모두 펼쳤습니다.')}
+function closeAll(){document.querySelectorAll('.study').forEach(x=>x.classList.remove('open'));flash('모두 접었습니다.')}
+const toast=document.getElementById('toast');function flash(t){toast.textContent=t||'복사했습니다.';toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),1200)}
+async function copyText(t){try{await navigator.clipboard.writeText(t)}catch(e){const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();document.execCommand('copy');a.remove()}flash()}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-copy]');if(b)copyText(b.dataset.copy)})
+</script>
+</body></html>

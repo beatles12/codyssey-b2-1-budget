@@ -1,0 +1,936 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>B2-1 나만의 용돈 기입장 프로그램 기술 설명서</title>
+<style>
+:root{
+  --bg:#f6f7fb;
+  --card:#ffffff;
+  --ink:#182033;
+  --muted:#667085;
+  --line:#e6e9f0;
+  --blue:#2563eb;
+  --green:#059669;
+  --amber:#d97706;
+  --purple:#7c3aed;
+  --red:#dc2626;
+  --navy:#0f172a;
+  --soft-blue:#eff6ff;
+  --soft-green:#ecfdf5;
+  --soft-amber:#fffbeb;
+  --soft-purple:#f5f3ff;
+  --soft-red:#fef2f2;
+  --shadow:0 12px 30px rgba(15,23,42,.08);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  font-family:"Pretendard","Noto Sans KR","Malgun Gothic",system-ui,-apple-system,sans-serif;
+  background:var(--bg);
+  color:var(--ink);
+  line-height:1.65;
+}
+button,input{font:inherit}
+a{color:inherit}
+.hero{
+  background:linear-gradient(135deg,#0f172a 0%,#1d4ed8 55%,#4f46e5 100%);
+  color:white;
+  padding:54px 24px 46px;
+}
+.hero-inner{max-width:1180px;margin:0 auto}
+.eyebrow{font-size:14px;opacity:.85;letter-spacing:.08em;font-weight:800}
+h1{font-size:clamp(30px,5vw,52px);line-height:1.15;margin:10px 0 14px}
+.hero p{max-width:860px;margin:0;font-size:18px;color:#e2e8f0}
+.badges{display:flex;flex-wrap:wrap;gap:9px;margin-top:22px}
+.badge{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:7px 11px;border-radius:999px;
+  background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.18);
+  font-size:13px;font-weight:800
+}
+.shell{max-width:1180px;margin:0 auto;padding:26px 20px 70px}
+.toolbar{
+  display:flex;flex-wrap:wrap;gap:10px;align-items:center;
+  background:white;border:1px solid var(--line);box-shadow:var(--shadow);
+  padding:14px;border-radius:18px;margin-top:-32px;position:relative
+}
+.toolbar a,.toolbar button{
+  border:0;background:#f8fafc;color:#334155;padding:9px 12px;border-radius:11px;
+  font-weight:800;text-decoration:none;cursor:pointer
+}
+.toolbar a:hover,.toolbar button:hover{background:#eaf1ff;color:#1d4ed8}
+section{scroll-margin-top:18px;margin-top:30px}
+.section-title{display:flex;gap:12px;align-items:flex-start;margin-bottom:14px}
+.section-no{
+  width:34px;height:34px;border-radius:10px;background:var(--navy);color:#fff;
+  display:grid;place-items:center;font-weight:900;flex:0 0 auto
+}
+h2{margin:0;font-size:28px;line-height:1.25}
+.subtitle{color:var(--muted);margin:5px 0 0}
+.grid{display:grid;gap:15px}
+.grid.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.card{
+  background:var(--card);border:1px solid var(--line);border-radius:18px;
+  padding:20px;box-shadow:0 5px 18px rgba(15,23,42,.035)
+}
+.card h3{margin:0 0 8px;font-size:20px}
+.card p{margin:7px 0;color:#475467}
+.kpi{font-size:31px;font-weight:900;color:var(--blue)}
+.mini{font-size:13px;color:var(--muted)}
+.callout{
+  border-left:5px solid var(--blue);background:var(--soft-blue);
+  padding:16px 18px;border-radius:12px;margin:14px 0
+}
+.callout.green{border-color:var(--green);background:var(--soft-green)}
+.callout.amber{border-color:var(--amber);background:var(--soft-amber)}
+.callout.red{border-color:var(--red);background:var(--soft-red)}
+.callout strong{color:#111827}
+.arch{
+  display:grid;grid-template-columns:1fr 42px 1fr 42px 1.1fr 42px 1.1fr;
+  gap:10px;align-items:stretch
+}
+.node{
+  border:1px solid var(--line);background:#fff;border-radius:16px;padding:15px;
+  min-height:116px
+}
+.node strong{display:block;font-size:17px;margin-bottom:5px}
+.arrow{display:grid;place-items:center;font-size:30px;color:#94a3b8;font-weight:900}
+.subnode{
+  margin-top:10px;padding:10px;border:1px dashed #cbd5e1;background:#f8fafc;border-radius:11px
+}
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.kind{display:inline-block;padding:4px 9px;border-radius:999px;font-size:12px;font-weight:900}
+.kind.builtin{color:#1d4ed8;background:#dbeafe}
+.kind.stdlib{color:#047857;background:#d1fae5}
+.kind.syntax{color:#b45309;background:#fef3c7}
+.kind.project{color:#6d28d9;background:#ede9fe}
+details{
+  background:white;border:1px solid var(--line);border-radius:15px;margin:10px 0;
+  overflow:hidden
+}
+summary{
+  cursor:pointer;font-weight:900;padding:15px 17px;list-style:none;
+  display:flex;align-items:center;justify-content:space-between;gap:10px
+}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"＋";color:#64748b;font-size:20px}
+details[open] summary::after{content:"−"}
+.detail-body{padding:0 17px 17px;border-top:1px solid #f0f2f6}
+.fn{
+  padding:12px 0;border-bottom:1px solid #eef0f4
+}
+.fn:last-child{border-bottom:0}
+.fn-name{font-family:Consolas,monospace;font-weight:900;color:#1e40af}
+.meta{display:grid;grid-template-columns:110px 1fr;gap:5px 10px;margin-top:7px;font-size:14px}
+.meta .label{color:#667085;font-weight:800}
+.flow{
+  display:flex;flex-wrap:wrap;align-items:stretch;gap:8px;margin:12px 0
+}
+.step{
+  background:#fff;border:1px solid #dbe1ea;border-radius:13px;padding:11px 12px;
+  min-width:145px;flex:1
+}
+.step b{display:block;color:#0f172a}
+.step small{display:block;color:#667085;margin-top:4px}
+.flow-arr{display:grid;place-items:center;color:#94a3b8;font-size:24px;font-weight:900}
+pre{
+  margin:10px 0 0;background:#0f172a;color:#e2e8f0;border-radius:13px;
+  padding:14px 15px;overflow:auto;font-family:Consolas,"Courier New",monospace;
+  font-size:13px;line-height:1.55
+}
+.code-row{position:relative}
+.copy{
+  border:0;background:#eaf2ff;color:#1d4ed8;border-radius:9px;padding:7px 10px;
+  cursor:pointer;font-size:12px;font-weight:900
+}
+.copy:hover{background:#dbeafe}
+.command-card{
+  display:grid;grid-template-columns:120px 1fr auto;gap:10px;align-items:center;
+  border:1px solid var(--line);border-radius:13px;padding:10px 12px;margin:8px 0;background:#fff
+}
+.command-card .cmdname{font-weight:900;color:#111827}
+.command-card code{
+  background:#f7f8fb;border:1px solid #edf0f5;padding:8px 10px;border-radius:9px;
+  font-family:Consolas,monospace;overflow:auto;white-space:nowrap;color:#1f2937
+}
+.builder{
+  display:grid;grid-template-columns:180px 1fr auto;gap:10px;align-items:center;margin:10px 0
+}
+.builder label{font-weight:900}
+.builder input{
+  width:100%;padding:9px 11px;border:1px solid #cfd6e2;border-radius:10px;background:#fff
+}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{border-bottom:1px solid #e8ebf1;padding:10px;text-align:left;vertical-align:top}
+th{background:#f8fafc;color:#344054}
+.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:13px}
+.file{
+  font-family:Consolas,monospace;background:#f8fafc;padding:2px 6px;border-radius:6px
+}
+.pill{
+  display:inline-block;font-size:12px;font-weight:900;padding:3px 7px;border-radius:999px;
+  background:#eef2ff;color:#4338ca
+}
+.tabs{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0}
+.tab{
+  border:1px solid #d9dfeb;background:#fff;padding:8px 10px;border-radius:10px;
+  font-weight:900;cursor:pointer
+}
+.tab.active{background:#111827;color:white;border-color:#111827}
+.flow-panel{display:none}
+.flow-panel.active{display:block}
+.checks{display:grid;gap:8px}
+.check{
+  display:flex;gap:9px;align-items:flex-start;padding:10px 11px;border:1px solid #e8ebf1;border-radius:11px;background:#fff
+}
+.check b{color:#059669}
+footer{margin-top:42px;color:#667085;text-align:center;font-size:13px}
+#toast{
+  position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);
+  background:#111827;color:#fff;padding:10px 15px;border-radius:10px;
+  opacity:0;pointer-events:none;transition:.2s;z-index:9999;font-weight:800
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@media(max-width:900px){
+  .grid.two,.grid.three{grid-template-columns:1fr}
+  .arch{grid-template-columns:1fr}
+  .arrow{transform:rotate(90deg);height:26px}
+  .command-card{grid-template-columns:1fr}
+  .builder{grid-template-columns:1fr}
+}
+@media print{
+  body{background:#fff}
+  .hero{padding:25px 15px}
+  .toolbar,.copy,.tabs,#toast{display:none!important}
+  .shell{padding:15px}
+  .card,details{box-shadow:none;break-inside:avoid}
+  details .detail-body{display:block!important}
+  details:not([open]) .detail-body{display:block}
+  summary::after{display:none}
+}
+
+/* --- Interactive study additions --- */
+.section-head-row{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+}
+.section-toggle{
+  border:1px solid #d7deea;background:#fff;color:#334155;padding:8px 11px;
+  border-radius:10px;font-weight:900;cursor:pointer;
+}
+.section-toggle:hover{background:#eef4ff;color:#1d4ed8}
+.collapsible-body{display:block}
+.collapsible-body.is-hidden{display:none}
+
+.click-flow{
+  display:grid;gap:10px;margin:14px 0
+}
+.click-step{
+  border:1px solid #dbe1ea;background:#fff;border-radius:14px;padding:12px 14px;
+  cursor:pointer;transition:.15s;
+}
+.click-step:hover{border-color:#93c5fd;background:#f8fbff;transform:translateY(-1px)}
+.click-step .title{font-weight:900;color:#0f172a;display:flex;justify-content:space-between;gap:10px}
+.click-step .hint{color:#64748b;font-size:13px}
+.click-step .more{
+  display:none;margin-top:9px;padding-top:9px;border-top:1px dashed #dbe1ea;color:#475467
+}
+.click-step.open .more{display:block}
+.click-step .chev{font-weight:900;color:#64748b}
+.click-step.open .chev{transform:rotate(90deg)}
+.flow-arrow-down{
+  text-align:center;color:#94a3b8;font-size:28px;font-weight:900;line-height:1
+}
+.flow-note{
+  margin:8px 0 0;font-size:13px;color:#667085
+}
+.global-controls{
+  display:flex;gap:8px;flex-wrap:wrap;margin-left:auto
+}
+.global-controls button{
+  border:1px solid #d7deea;background:#fff;color:#334155;padding:8px 11px;
+  border-radius:10px;font-weight:900;cursor:pointer
+}
+.global-controls button:hover{background:#eef4ff;color:#1d4ed8}
+
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="hero-inner">
+    <div class="eyebrow">CODYSSEY · B2-1 · PYTHON CONSOLE SERVICE</div>
+    <h1>나만의 용돈 기입장 프로그램<br>기술 설명서</h1>
+    <p>최신 main 코드 기준으로 프로그램의 구조, 함수 역할, 10개 명령의 실행 흐름, JSONL 저장, Generator·Decorator·Type Hint를 한 화면에서 이해할 수 있도록 정리했습니다.</p>
+    <div class="badges">
+      <span class="badge">10개 핵심 명령</span>
+      <span class="badge">JSONL 영구 저장</span>
+      <span class="badge">CSV import/export</span>
+      <span class="badge">Generator</span>
+      <span class="badge">Decorator</span>
+      <span class="badge">Type Hint</span>
+      <span class="badge">자동 테스트 12개</span>
+      <span class="badge">Latest commit: 4c2c244</span>
+    </div>
+  </div>
+</header>
+
+<main class="shell">
+  <nav class="toolbar">
+    <a href="#overview">한눈에 보기</a>
+    <a href="#architecture">구조도</a>
+    <a href="#commands">명령어 복사</a>
+    <a href="#flows">10개 실행 흐름</a>
+    <a href="#modules">모듈·함수</a>
+    <a href="#concepts">핵심 개념</a>
+    <a href="#storage">데이터 안전</a>
+    <a href="#scale">대용량</a>
+    <button onclick="window.print()">인쇄 / PDF</button>
+    <div class="global-controls">
+      <button onclick="openAllDetails()">모두 펼치기</button>
+      <button onclick="closeAllDetails()">모두 접기</button>
+    </div>
+  </nav>
+
+  <section id="overview">
+    <div class="section-title">
+      <div class="section-no">1</div>
+      <div><h2>프로그램 한눈에 보기</h2><p class="subtitle">“사용자 명령을 받아 검증하고, 파일에 안전하게 저장하는 작은 서비스”입니다.</p></div>
+    </div>
+    <div class="grid three">
+      <div class="card"><div class="kpi">3</div><h3>영구 저장 파일</h3><p><span class="file">transactions.jsonl</span><br><span class="file">categories.jsonl</span><br><span class="file">budgets.jsonl</span></p></div>
+      <div class="card"><div class="kpi">10</div><h3>핵심 명령</h3><p>add · list · search · summary · update · delete · category · budget · import · export</p></div>
+      <div class="card"><div class="kpi">12</div><h3>자동 테스트</h3><p>추가·조회·검색·요약·수정·삭제·카테고리·예산·CSV 기능을 자동 검증합니다.</p></div>
+    </div>
+    <div class="callout green">
+      <strong>30초 구조 요약</strong><br>
+      사용자가 터미널에서 명령을 입력하면 <b>__main__.py</b>가 프로그램을 시작하고, <b>cli.py</b>가 명령과 입력을 받습니다.
+      실제 규칙 검사는 <b>service.py</b>, 파일 읽기·쓰기는 <b>repository.py</b>가 맡습니다.
+      거래 모양은 <b>models.py</b>의 Transaction이 정의하고, CSV 교환은 <b>csv_service.py</b>,
+      공통 오류 처리는 <b>decorators.py</b>의 safe_entry가 맡습니다.
+    </div>
+  </section>
+
+  <section id="architecture">
+    <div class="section-title">
+      <div class="section-no">2</div>
+      <div><h2>전체 구조도</h2><p class="subtitle">각 파일이 “한 가지 책임”을 맡도록 나눈 구조입니다.</p></div>
+    </div>
+
+    <div class="card" style="margin-bottom:14px">
+      <h3>클릭해서 보는 전체 실행 흐름</h3>
+      <p class="mini">각 상자를 클릭하면 “이 단계에서 무슨 일을 하는지”가 펼쳐집니다.</p>
+      <div class="click-flow">
+        <div class="click-step" onclick="this.classList.toggle('open')">
+          <div class="title"><span>① 사용자 명령</span><span class="chev">▶</span></div>
+          <div class="hint">PowerShell에서 python -m budget_app ... 실행</div>
+          <div class="more">사용자가 add, list, search 같은 명령을 입력합니다. 이 순간부터 프로그램의 실행 흐름이 시작됩니다.</div>
+        </div>
+        <div class="flow-arrow-down">↓</div>
+        <div class="click-step" onclick="this.classList.toggle('open')">
+          <div class="title"><span>② __main__.py</span><span class="chev">▶</span></div>
+          <div class="hint">프로그램 진입점 + @safe_entry</div>
+          <div class="more">가장 먼저 실행되는 파일입니다. safe_entry 데코레이터가 전체 실행을 감싸 공통 오류를 한 곳에서 처리합니다.</div>
+        </div>
+        <div class="flow-arrow-down">↓</div>
+        <div class="click-step" onclick="this.classList.toggle('open')">
+          <div class="title"><span>③ cli.py</span><span class="chev">▶</span></div>
+          <div class="hint">명령 해석 · 사용자 입력 · 화면 출력</div>
+          <div class="more">argparse로 명령을 해석하고, input()으로 값을 받고, 적절한 Service 또는 CsvService를 호출합니다.</div>
+        </div>
+        <div class="flow-arrow-down">↓</div>
+        <div class="click-step" onclick="this.classList.toggle('open')">
+          <div class="title"><span>④ service.py</span><span class="chev">▶</span></div>
+          <div class="hint">검증 · 업무 규칙 · 계산</div>
+          <div class="more">날짜, 금액, 타입 같은 값이 올바른지 검사하고 거래 추가·수정·요약 같은 핵심 규칙을 처리합니다.</div>
+        </div>
+        <div class="flow-arrow-down">↓</div>
+        <div class="click-step" onclick="this.classList.toggle('open')">
+          <div class="title"><span>⑤ repository.py</span><span class="chev">▶</span></div>
+          <div class="hint">JSONL 파일 읽기·쓰기</div>
+          <div class="more">Service의 요청을 받아 transactions.jsonl, categories.jsonl, budgets.jsonl을 실제로 읽고 씁니다.</div>
+        </div>
+        <div class="flow-arrow-down">↓</div>
+        <div class="click-step" onclick="this.classList.toggle('open')">
+          <div class="title"><span>⑥ data 파일</span><span class="chev">▶</span></div>
+          <div class="hint">프로그램 종료 후에도 남는 영구 저장</div>
+          <div class="more">거래·카테고리·예산이 파일에 남기 때문에 프로그램을 껐다 켜도 데이터가 유지됩니다.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="arch">
+      <div class="node"><strong>사용자 / PowerShell</strong>명령 입력<br><span class="file">python -m budget_app ...</span></div>
+      <div class="arrow">→</div>
+      <div class="node"><strong>__main__.py</strong><span class="pill">@safe_entry</span><br>프로그램 시작 + 공통 오류 보호막</div>
+      <div class="arrow">→</div>
+      <div class="node"><strong>cli.py</strong><span class="pill">run_cli()</span><br>명령 해석 · input() · 화면 출력<div class="subnode">CSV 명령은 <b>csv_service.py</b>로 분기</div></div>
+      <div class="arrow">→</div>
+      <div class="node"><strong>service.py</strong>검증 · 업무 규칙 · 요약 계산<div class="subnode">repository.py 호출</div></div>
+    </div>
+    <div class="arch" style="margin-top:10px;grid-template-columns:1.2fr 42px 1.2fr 42px 1.2fr 42px 1.2fr">
+      <div class="node"><strong>models.py</strong>Transaction 데이터 모양</div>
+      <div class="arrow">↔</div>
+      <div class="node"><strong>repository.py</strong>JSONL 읽기 · 추가 · 재작성</div>
+      <div class="arrow">→</div>
+      <div class="node"><strong>data/</strong>transactions.jsonl<br>categories.jsonl<br>budgets.jsonl</div>
+      <div class="arrow">↔</div>
+      <div class="node"><strong>csv_service.py</strong>CSV export/import<br>외부 교환 담당</div>
+    </div>
+    <div class="callout">
+      <strong>생활 비유</strong><br>
+      CLI는 “접수창구”, Service는 “업무 담당자”, Repository는 “서류 보관실”, Model은 “서류 양식”, Decorator는 “건물 입구의 안전요원”이라고 생각하면 쉽습니다.
+    </div>
+  </section>
+
+  <section id="commands">
+    <div class="section-title">
+      <div class="section-no">3</div>
+      <div><h2>명령어를 외우지 않는 실행 치트시트</h2><p class="subtitle">오른쪽 <b>복사</b> 버튼을 누르고 PowerShell에 붙여넣으면 됩니다.</p></div>
+    </div>
+    <div class="callout amber">
+      <strong>중요:</strong> 아래 명령은 프로젝트 폴더
+      <span class="file">D:\00_코디세이\codyssey_main\codyssey-b2-1-budget</span>
+      안에서 실행합니다. <b>&lt;id&gt; 같은 자리표시자를 그대로 실행하지 않습니다.</b> 수정·삭제는 아래 ID 입력칸에 실제 거래 ID를 붙여 넣으세요.
+    </div>
+
+    <div class="card">
+      <div class="command-card"><div class="cmdname">전체 도움말</div><code>python -m budget_app --help</code><button class="copy" data-copy="python -m budget_app --help">복사</button></div>
+      <div class="command-card"><div class="cmdname">거래 추가</div><code>python -m budget_app add</code><button class="copy" data-copy="python -m budget_app add">복사</button></div>
+      <div class="command-card"><div class="cmdname">최근 목록</div><code>python -m budget_app list --limit 20</code><button class="copy" data-copy="python -m budget_app list --limit 20">복사</button></div>
+      <div class="command-card"><div class="cmdname">카테고리 검색</div><code>python -m budget_app search --category food</code><button class="copy" data-copy="python -m budget_app search --category food">복사</button></div>
+      <div class="command-card"><div class="cmdname">월 요약</div><code>python -m budget_app summary --month 2026-09 --top 3</code><button class="copy" data-copy="python -m budget_app summary --month 2026-09 --top 3">복사</button></div>
+      <div class="command-card"><div class="cmdname">카테고리 목록</div><code>python -m budget_app category list</code><button class="copy" data-copy="python -m budget_app category list">복사</button></div>
+      <div class="command-card"><div class="cmdname">카테고리 추가</div><code>python -m budget_app category add</code><button class="copy" data-copy="python -m budget_app category add">복사</button></div>
+      <div class="command-card"><div class="cmdname">카테고리 삭제</div><code>python -m budget_app category remove</code><button class="copy" data-copy="python -m budget_app category remove">복사</button></div>
+      <div class="command-card"><div class="cmdname">예산 저장</div><code>python -m budget_app budget set --month 2026-09 --amount 500000</code><button class="copy" data-copy="python -m budget_app budget set --month 2026-09 --amount 500000">복사</button></div>
+      <div class="command-card"><div class="cmdname">예산 조회</div><code>python -m budget_app budget get --month 2026-09</code><button class="copy" data-copy="python -m budget_app budget get --month 2026-09">복사</button></div>
+      <div class="command-card"><div class="cmdname">CSV 내보내기</div><code>python -m budget_app export --out export.csv --month 2026-09</code><button class="copy" data-copy="python -m budget_app export --out export.csv --month 2026-09">복사</button></div>
+      <div class="command-card"><div class="cmdname">CSV 가져오기</div><code>python -m budget_app import --from import.csv</code><button class="copy" data-copy="python -m budget_app import --from import.csv">복사</button></div>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+      <h3>수정·삭제 명령 자동 만들기</h3>
+      <p>먼저 <b>list</b>를 실행해 화면에 나온 실제 ID를 복사하고 아래 칸에 붙여 넣으세요.</p>
+      <div class="builder"><label for="txid">실제 거래 ID</label><input id="txid" placeholder="예: ae37bac9-ada7-45fb-b8e8-5c11c14240db"><button class="copy" onclick="copyBuilt('update')">update 복사</button></div>
+      <div class="builder"><span></span><code id="updatePreview">python -m budget_app update --id [실제 ID]</code><span></span></div>
+      <div class="builder"><span></span><code id="deletePreview">python -m budget_app delete --id [실제 ID]</code><button class="copy" onclick="copyBuilt('delete')">delete 복사</button></div>
+    </div>
+
+    <details>
+      <summary>▶ 실제 데이터를 건드리지 않는 안전 연습 방법</summary>
+      <div class="detail-body">
+        <p>명령에서 <span class="file">--data-dir test_data/demo</span>를 앞에 붙이면 기본 <span class="file">data/</span> 대신 연습 전용 폴더를 사용합니다.</p>
+        <div class="command-card"><div class="cmdname">연습용 추가</div><code>python -m budget_app --data-dir test_data/demo add</code><button class="copy" data-copy="python -m budget_app --data-dir test_data/demo add">복사</button></div>
+        <div class="command-card"><div class="cmdname">연습용 목록</div><code>python -m budget_app --data-dir test_data/demo list</code><button class="copy" data-copy="python -m budget_app --data-dir test_data/demo list">복사</button></div>
+      </div>
+    </details>
+  </section>
+
+  <section id="flows">
+    <div class="section-title">
+      <div class="section-no">4</div>
+      <div><h2>10개 명령의 실행 흐름</h2><p class="subtitle">버튼을 눌러 “사용자 명령이 어느 함수로 이동하는지” 확인하세요.</p></div>
+    </div>
+    <div class="tabs">
+      <button class="tab active" data-target="flow-add">add</button>
+      <button class="tab" data-target="flow-list">list</button>
+      <button class="tab" data-target="flow-search">search</button>
+      <button class="tab" data-target="flow-summary">summary</button>
+      <button class="tab" data-target="flow-update">update</button>
+      <button class="tab" data-target="flow-delete">delete</button>
+      <button class="tab" data-target="flow-category">category</button>
+      <button class="tab" data-target="flow-budget">budget</button>
+      <button class="tab" data-target="flow-export">export</button>
+      <button class="tab" data-target="flow-import">import</button>
+    </div>
+
+    <div id="flow-add" class="flow-panel active card">
+      <h3>add · 새 거래 추가</h3>
+      <div class="flow">
+        <div class="step"><b>cli.py</b><small>날짜·종류·카테고리·금액·메모·태그 입력</small></div><div class="flow-arr">→</div>
+        <div class="step"><b>parse / choose</b><small>날짜 정리, 메뉴 선택, 금액 정수 변환</small></div><div class="flow-arr">→</div>
+        <div class="step"><b>TransactionService.add_transaction</b><small>입력값 검증 + UUID 생성</small></div><div class="flow-arr">→</div>
+        <div class="step"><b>Transaction</b><small>dataclass로 한 거래를 객체로 만듦</small></div><div class="flow-arr">→</div>
+        <div class="step"><b>Repository.add</b><small>JSONL 한 줄 append</small></div>
+      </div>
+      <p><b>핵심:</b> CLI는 입력만 받고, “올바른 거래인가?” 판단은 Service가 합니다.</p>
+    </div>
+
+    <div id="flow-list" class="flow-panel card">
+      <h3>list · 최근 거래 목록</h3>
+      <div class="flow">
+        <div class="step"><b>--limit</b><small>기본 20건</small></div><div class="flow-arr">→</div>
+        <div class="step"><b>list_transactions</b><small>deque(maxlen=limit) 준비</small></div><div class="flow-arr">→</div>
+        <div class="step"><b>iter_transactions</b><small>파일을 한 줄씩 yield</small></div><div class="flow-arr">→</div>
+        <div class="step"><b>reversed</b><small>최근 거래부터 출력</small></div>
+      </div>
+      <p><b>핵심:</b> 파일 전체를 거대한 list로 만들지 않고 최근 N건만 메모리에 유지합니다.</p>
+    </div>
+
+    <div id="flow-search" class="flow-panel card">
+      <h3>search · 조건 검색</h3>
+      <div class="flow">
+        <div class="step"><b>검색 옵션</b><small>날짜·category·type·q·tag</small></div><div class="flow-arr">→</div>
+        <div class="step"><b>search_transactions</b><small>날짜와 type 검증</small></div><div class="flow-arr">→</div>
+        <div class="step"><b>iter_transactions</b><small>한 줄씩 읽으며 조건 비교</small></div><div class="flow-arr">→</div>
+        <div class="step"><b>matches deque</b><small>일치 결과를 모음</small></div><div class="flow-arr">→</div>
+        <div class="step"><b>yield pop()</b><small>최신순으로 하나씩 전달</small></div>
+      </div>
+      <p><b>주의:</b> Repository는 스트리밍이지만 최신순 출력을 위해 일치 결과는 deque에 모읍니다.</p>
+    </div>
+
+    <div id="flow-summary" class="flow-panel card">
+      <h3>summary · 월별 요약</h3>
+      <div class="flow">
+        <div class="step"><b>--month / --top</b><small>월과 TOP 개수 입력</small></div><div class="flow-arr">→</div>
+        <div class="step"><b>summarize_month</b><small>수입·지출·잔액·카테고리 합계 계산</small></div><div class="flow-arr">→</div>
+        <div class="step"><b>BudgetService</b><small>예산·사용률·초과 여부 계산</small></div><div class="flow-arr">→</div>
+        <div class="step"><b>CLI 출력</b><small>월 요약 + 예산 현황 표시</small></div>
+      </div>
+    </div>
+
+    <div id="flow-update" class="flow-panel card">
+      <h3>update · 거래 수정</h3>
+      <div class="flow">
+        <div class="step"><b>--id</b><small>기존 거래 찾기</small></div><div class="flow-arr">→</div>
+        <div class="step"><b>대화형 입력</b><small>Enter면 기존 값 유지</small></div><div class="flow-arr">→</div>
+        <div class="step"><b>update_transaction</b><small>변경값 합치기 + 재검증</small></div><div class="flow-arr">→</div>
+        <div class="step"><b>update_by_id</b><small>.tmp 파일에 전체 재작성</small></div><div class="flow-arr">→</div>
+        <div class="step"><b>replace</b><small>성공했을 때 원본과 교체</small></div>
+      </div>
+      <p><b>안전 포인트:</b> 원본 파일을 바로 덮어쓰지 않고 임시 파일을 완성한 뒤 교체합니다.</p>
+    </div>
+
+    <div id="flow-delete" class="flow-panel card">
+      <h3>delete · 거래 삭제</h3>
+      <div class="flow">
+        <div class="step"><b>삭제 확인</b><small>y 입력 시에만 진행</small></div><div class="flow-arr">→</div>
+        <div class="step"><b>delete_transaction</b><small>ID 존재 확인</small></div><div class="flow-arr">→</div>
+        <div class="step"><b>delete_by_id</b><small>대상만 빼고 .tmp 재작성</small></div><div class="flow-arr">→</div>
+        <div class="step"><b>replace</b><small>임시 파일을 원본으로 교체</small></div>
+      </div>
+    </div>
+
+    <div id="flow-category" class="flow-panel card">
+      <h3>category · 카테고리 관리</h3>
+      <div class="flow">
+        <div class="step"><b>list/add/remove</b><small>하위 명령 선택</small></div><div class="flow-arr">→</div>
+        <div class="step"><b>CategoryService</b><small>중복·존재 여부 검사</small></div><div class="flow-arr">→</div>
+        <div class="step"><b>사용 중 검사</b><small>remove 전에 거래 전체 확인</small></div><div class="flow-arr">→</div>
+        <div class="step"><b>CategoryRepository</b><small>categories.jsonl 반영</small></div>
+      </div>
+      <p><b>핵심:</b> 거래가 사용 중인 카테고리는 삭제를 막아 데이터가 깨지는 것을 방지합니다.</p>
+    </div>
+
+    <div id="flow-budget" class="flow-panel card">
+      <h3>budget · 월별 예산</h3>
+      <div class="flow">
+        <div class="step"><b>budget set/get</b><small>월과 금액 입력</small></div><div class="flow-arr">→</div>
+        <div class="step"><b>BudgetService</b><small>월 형식·양수 금액 검증</small></div><div class="flow-arr">→</div>
+        <div class="step"><b>BudgetRepository</b><small>budgets.jsonl 읽기/저장</small></div><div class="flow-arr">→</div>
+        <div class="step"><b>summary 연동</b><small>사용률과 초과 금액 표시</small></div>
+      </div>
+    </div>
+
+    <div id="flow-export" class="flow-panel card">
+      <h3>export · CSV 내보내기</h3>
+      <div class="flow">
+        <div class="step"><b>--out + 조건</b><small>month 또는 from/to</small></div><div class="flow-arr">→</div>
+        <div class="step"><b>CsvService</b><small>월/날짜 조건 검증</small></div><div class="flow-arr">→</div>
+        <div class="step"><b>iter_transactions</b><small>JSONL 한 줄씩 읽기</small></div><div class="flow-arr">→</div>
+        <div class="step"><b>csv.DictWriter</b><small>헤더 + 거래 행 작성</small></div>
+      </div>
+    </div>
+
+    <div id="flow-import" class="flow-panel card">
+      <h3>import · CSV 가져오기</h3>
+      <div class="flow">
+        <div class="step"><b>csv.DictReader</b><small>헤더와 행 읽기</small></div><div class="flow-arr">→</div>
+        <div class="step"><b>_prepare_import_row</b><small>형식·금액·카테고리 사전검증</small></div><div class="flow-arr">→</div>
+        <div class="step"><b>유효 행</b><small>TransactionService.add_transaction</small></div><div class="flow-arr">→</div>
+        <div class="step"><b>무효 행</b><small>skipped_count 증가 후 계속</small></div>
+      </div>
+      <p><b>핵심:</b> 예상 가능한 데이터 오류는 try/except를 반복하지 않고 먼저 검사합니다.</p>
+    </div>
+  </section>
+
+  <section id="modules">
+    <div class="section-title">
+      <div class="section-no">5</div>
+      <div><h2>모듈별 클래스와 함수</h2><p class="subtitle">파일 제목을 클릭하면 내용을 접었다 펼칠 수 있습니다. 함수명 + 역할 + 호출 관계를 함께 봅니다.</p></div>
+    </div>
+
+    <div class="legend">
+      <span class="kind builtin">Python 기본 함수</span>
+      <span class="kind stdlib">Python 표준 라이브러리</span>
+      <span class="kind syntax">Python 문법/개념</span>
+      <span class="kind project">프로젝트 정의 기능</span>
+    </div>
+
+    <details open>
+      <summary>▶ __main__.py · 프로그램 시작점</summary>
+      <div class="detail-body">
+        <div class="fn"><span class="fn-name">main() -> None</span>
+          <div class="meta"><div class="label">종류</div><div><span class="kind project">프로젝트 함수</span></div>
+          <div class="label">역할</div><div>CLI를 시작하는 가장 바깥 진입 함수</div>
+          <div class="label">누가 호출</div><div><span class="file">python -m budget_app</span> 실행 시 Python</div>
+          <div class="label">다음 호출</div><div><span class="fn-name">run_cli()</span></div></div>
+        </div>
+        <div class="code-row"><pre>@safe_entry
+def main() -> None:
+    run_cli()</pre></div>
+      </div>
+    </details>
+
+    <details>
+      <summary>▶ decorators.py · 공통 오류 처리</summary>
+      <div class="detail-body">
+        <div class="fn"><span class="fn-name">safe_entry(func)</span>
+          <div class="meta"><div class="label">종류</div><div><span class="kind project">프로젝트 함수</span> <span class="kind syntax">Decorator</span></div>
+          <div class="label">역할</div><div>입력 중단·입력 오류·파일 오류를 한 곳에서 처리</div>
+          <div class="label">누가 호출</div><div><span class="file">__main__.py</span>의 <span class="fn-name">@safe_entry</span></div>
+          <div class="label">다음 호출</div><div>감싼 함수 실행 → 오류 시 메시지 → <span class="file">SystemExit(1)</span></div></div>
+        </div>
+        <p><span class="kind stdlib">typing.Callable</span> <span class="kind stdlib">TypeVar</span>를 사용해 “어떤 함수를 감싸는지” 타입을 표현합니다.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>▶ models.py · 거래 데이터 모양</summary>
+      <div class="detail-body">
+        <div class="fn"><span class="fn-name">Transaction</span>
+          <div class="meta"><div class="label">종류</div><div><span class="kind project">프로젝트 클래스</span> <span class="kind stdlib">dataclass</span></div>
+          <div class="label">역할</div><div>거래 한 건이 가져야 할 필드를 정의</div>
+          <div class="label">필드</div><div>id, type, date, amount, category, memo, tags</div>
+          <div class="label">사용 위치</div><div>Service에서 생성, Repository에서 저장·복원</div></div>
+        </div>
+        <pre>@dataclass
+class Transaction:
+    id: str
+    type: str
+    date: str
+    amount: int
+    category: str
+    memo: str = ''
+    tags: list[str] = field(default_factory=list)</pre>
+      </div>
+    </details>
+
+    <details>
+      <summary>▶ cli.py · 명령어와 사용자 입력/출력</summary>
+      <div class="detail-body">
+        <div class="fn"><span class="fn-name">normalize_date_input()</span><div class="meta"><div class="label">역할</div><div>빈 입력은 오늘 날짜, 8자리 숫자는 YYYY-MM-DD로 변환</div><div class="label">사용 기능</div><div><span class="kind stdlib">datetime</span>, <span class="kind builtin">len()</span></div></div></div>
+        <div class="fn"><span class="fn-name">parse_amount()</span><div class="meta"><div class="label">역할</div><div>금액 문자열이 숫자인지 확인 후 int로 변환</div><div class="label">다음</div><div>잘못되면 ValueError → safe_entry</div></div></div>
+        <div class="fn"><span class="fn-name">choose_transaction_type()</span><div class="meta"><div class="label">역할</div><div>income / expense 번호 선택</div><div class="label">특징</div><div>1·2가 아니면 같은 자리에서 다시 입력</div></div></div>
+        <div class="fn"><span class="fn-name">choose_transaction_type_for_update()</span><div class="meta"><div class="label">역할</div><div>수정 시 Enter로 기존 type 유지 가능</div></div></div>
+        <div class="fn"><span class="fn-name">choose_category()</span><div class="meta"><div class="label">역할</div><div>등록된 카테고리를 번호로 선택</div><div class="label">호출</div><div>Repository의 iter_categories()</div></div></div>
+        <div class="fn"><span class="fn-name">choose_category_for_update()</span><div class="meta"><div class="label">역할</div><div>수정 시 Enter로 기존 category 유지 가능</div></div></div>
+        <div class="fn"><span class="fn-name">build_parser()</span><div class="meta"><div class="label">역할</div><div>argparse로 10개 명령과 옵션 정의</div><div class="label">종류</div><div><span class="kind stdlib">argparse</span></div></div></div>
+        <div class="fn"><span class="fn-name">run_cli()</span><div class="meta"><div class="label">역할</div><div>명령 해석 → Repository/Service 연결 → 기능별 분기</div><div class="label">누가 호출</div><div>__main__.py의 main()</div><div class="label">다음 호출</div><div>TransactionService / CategoryService / BudgetService / CsvService</div></div></div>
+      </div>
+    </details>
+
+    <details>
+      <summary>▶ service.py · 검증과 업무 규칙</summary>
+      <div class="detail-body">
+        <div class="fn"><span class="fn-name">_is_valid_date()</span><div class="meta"><div class="label">역할</div><div>YYYY-MM-DD 형식과 실제 존재하는 날짜 검사</div><div class="label">사용 기능</div><div><span class="kind stdlib">calendar.monthrange</span></div></div></div>
+        <div class="fn"><span class="fn-name">_is_valid_month()</span><div class="meta"><div class="label">역할</div><div>YYYY-MM 형식과 1~12월 범위 검사</div></div></div>
+        <div class="fn"><span class="fn-name">TransactionService</span><div class="meta"><div class="label">역할</div><div>거래 add/list/search/summary/update/delete 업무 규칙</div><div class="label">핵심 함수</div><div>get_transaction_validation_error, add_transaction, list_transactions, search_transactions, summarize_month, update_transaction, delete_transaction</div></div></div>
+        <div class="fn"><span class="fn-name">CategoryService</span><div class="meta"><div class="label">역할</div><div>카테고리 목록·추가·삭제, 사용 중 삭제 방지</div><div class="label">핵심 함수</div><div>list_categories, add_category, remove_category</div></div></div>
+        <div class="fn"><span class="fn-name">BudgetService</span><div class="meta"><div class="label">역할</div><div>월 예산 저장·조회·사용률·초과 여부 계산</div><div class="label">핵심 함수</div><div>set_budget, get_budget, get_budget_status</div></div></div>
+      </div>
+    </details>
+
+    <details>
+      <summary>▶ repository.py · JSONL 파일 저장소</summary>
+      <div class="detail-body">
+        <div class="fn"><span class="fn-name">_write_json_line()</span><div class="meta"><div class="label">역할</div><div>dict 하나를 JSONL 한 줄로 저장</div><div class="label">사용 기능</div><div><span class="kind stdlib">json.dump</span></div></div></div>
+        <div class="fn"><span class="fn-name">TransactionRepository</span><div class="meta"><div class="label">역할</div><div>transactions.jsonl 읽기·추가·검색·수정·삭제</div><div class="label">핵심 함수</div><div>add, iter_transactions, find_by_id, update_by_id, delete_by_id</div></div></div>
+        <div class="fn"><span class="fn-name">CategoryRepository</span><div class="meta"><div class="label">역할</div><div>기본 카테고리 생성, 목록 읽기, 존재 확인, 추가·삭제</div><div class="label">핵심 함수</div><div>_create_default_categories, iter_categories, exists, add, remove</div></div></div>
+        <div class="fn"><span class="fn-name">BudgetRepository</span><div class="meta"><div class="label">역할</div><div>budgets.jsonl 월 예산 읽기·저장</div><div class="label">핵심 함수</div><div>iter_budgets, get_budget, set_budget</div></div></div>
+      </div>
+    </details>
+
+    <details>
+      <summary>▶ csv_service.py · CSV 외부 교환</summary>
+      <div class="detail-body">
+        <div class="fn"><span class="fn-name">CsvService.__init__()</span><div class="meta"><div class="label">역할</div><div>TransactionRepository, CategoryRepository, TransactionService 연결</div></div></div>
+        <div class="fn"><span class="fn-name">export_transactions()</span><div class="meta"><div class="label">역할</div><div>월 또는 날짜 범위 조건으로 거래를 CSV에 저장</div><div class="label">사용 기능</div><div><span class="kind stdlib">csv.DictWriter</span></div></div></div>
+        <div class="fn"><span class="fn-name">_prepare_import_row()</span><div class="meta"><div class="label">역할</div><div>CSV 한 행을 먼저 검사하고 유효하면 add용 dict로 변환</div><div class="label">오류 행</div><div>None 반환 → skipped_count 증가</div></div></div>
+        <div class="fn"><span class="fn-name">import_transactions()</span><div class="meta"><div class="label">역할</div><div>헤더 검사 → 각 행 검증 → 정상 행만 거래 저장</div><div class="label">사용 기능</div><div><span class="kind stdlib">csv.DictReader</span></div></div></div>
+      </div>
+    </details>
+
+    <details>
+      <summary>▶ tests/test_budget_app.py · 자동 테스트</summary>
+      <div class="detail-body">
+        <p>현재 자동 테스트는 12개이며 다음 기능을 확인합니다.</p>
+        <div class="checks">
+          <div class="check"><b>✓</b><span>add + list</span></div>
+          <div class="check"><b>✓</b><span>잘못된 amount 검증</span></div>
+          <div class="check"><b>✓</b><span>category 검색</span></div>
+          <div class="check"><b>✓</b><span>월별 summary</span></div>
+          <div class="check"><b>✓</b><span>update / delete</span></div>
+          <div class="check"><b>✓</b><span>category add/remove + 사용 중 삭제 방지</span></div>
+          <div class="check"><b>✓</b><span>budget set/get + 사용률</span></div>
+          <div class="check"><b>✓</b><span>CSV export / import</span></div>
+        </div>
+        <div class="command-card"><div class="cmdname">테스트 실행</div><code>python -m unittest discover -s tests -v</code><button class="copy" data-copy="python -m unittest discover -s tests -v">복사</button></div>
+      </div>
+    </details>
+  </section>
+
+  <section id="concepts">
+    <div class="section-title">
+      <div class="section-no">6</div>
+      <div><h2>핵심 Python 개념</h2><p class="subtitle">코드를 외우기보다 “왜 썼는지” 이해하는 부분입니다.</p></div>
+    </div>
+    <div class="grid two">
+      <div class="card">
+        <h3>Generator · yield</h3>
+        <p><b>쉬운 뜻:</b> 창고의 물건을 한꺼번에 바닥에 쏟지 않고 컨베이어 벨트로 하나씩 보내는 방식입니다.</p>
+        <pre>for line in file:
+    ...
+    yield Transaction(...)</pre>
+        <p><b>왜 사용?</b> transactions.jsonl 전체를 한 번에 메모리에 올리지 않고 한 줄씩 처리하기 위해서입니다.</p>
+        <p><b>정확한 한계:</b> search는 파일은 한 줄씩 읽지만 최신순 출력을 위해 일치 결과를 deque에 모읍니다.</p>
+      </div>
+      <div class="card">
+        <h3>Decorator · @safe_entry</h3>
+        <p><b>쉬운 뜻:</b> 여러 방마다 경비원을 두는 대신 건물 입구에 안전요원 한 명을 두는 것입니다.</p>
+        <pre>@safe_entry
+def main() -> None:
+    run_cli()</pre>
+        <p><b>왜 사용?</b> KeyboardInterrupt, EOFError, ValueError, OSError를 진입점에서 공통 형식으로 안내하고 traceback 노출을 막기 위해서입니다.</p>
+      </div>
+      <div class="card">
+        <h3>Type Hint · 타입 힌트</h3>
+        <p><b>쉬운 뜻:</b> 함수 입구에 “여기는 문자열을 넣고, 결과는 정수 또는 없음이 나옵니다”라는 표지판을 붙이는 것입니다.</p>
+        <pre>def get_budget(self, month: str) -> int | None:</pre>
+        <p><b>중요:</b> 타입 힌트는 실행 중 강제로 막는 장치가 아니라 사람과 IDE가 코드를 이해하고 실수를 찾기 쉽게 하는 계약 표시입니다.</p>
+      </div>
+      <div class="card">
+        <h3>dataclass · Transaction</h3>
+        <p><b>쉬운 뜻:</b> 거래 한 장의 “정해진 서식”입니다.</p>
+        <p>id, type, date, amount, category, memo, tags를 같은 모양으로 묶어 Service와 Repository가 함께 사용합니다.</p>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+      <h3>Python 기능 4종 구분</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>구분</th><th>예</th><th>뜻</th></tr></thead>
+          <tbody>
+            <tr><td><span class="kind builtin">기본 함수</span></td><td>print(), input(), int(), len(), list(), sorted()</td><td>Python을 설치하면 바로 쓸 수 있는 기본 도구</td></tr>
+            <tr><td><span class="kind stdlib">표준 라이브러리</span></td><td>argparse, csv, json, pathlib.Path, dataclasses, datetime, uuid, collections</td><td>별도 설치 없이 import해서 쓰는 Python 공식 도구 상자</td></tr>
+            <tr><td><span class="kind syntax">문법/개념</span></td><td>class, def, yield, raise, decorator, type hint</td><td>Python 코드를 구성하는 규칙과 개념</td></tr>
+            <tr><td><span class="kind project">프로젝트 코드</span></td><td>TransactionService, add_transaction(), TransactionRepository</td><td>이번 프로젝트에서 직접 만든 클래스와 함수</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="storage">
+    <div class="section-title">
+      <div class="section-no">7</div>
+      <div><h2>데이터 저장과 안전 처리</h2><p class="subtitle">“작은 서비스”에서 가장 중요한 것은 데이터가 쉽게 깨지지 않는 것입니다.</p></div>
+    </div>
+    <div class="grid three">
+      <div class="card"><h3>transactions.jsonl</h3><p>거래 한 건을 JSON 객체 한 줄로 저장합니다.</p><p class="mini">add는 파일 끝에 append, list/search는 한 줄씩 읽음</p></div>
+      <div class="card"><h3>categories.jsonl</h3><p>카테고리 이름을 한 줄씩 저장합니다.</p><p class="mini">비어 있으면 기본 카테고리 자동 생성</p></div>
+      <div class="card"><h3>budgets.jsonl</h3><p>월별 예산을 month + amount로 저장합니다.</p><p class="mini">set 시 임시 파일을 만든 후 교체</p></div>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+      <h3>JSONL과 CSV는 왜 역할을 나눴나?</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>항목</th><th>JSONL</th><th>CSV</th></tr></thead>
+          <tbody>
+            <tr><td>프로젝트 역할</td><td><b>내부 영구 저장</b></td><td><b>외부 import/export</b></td></tr>
+            <tr><td>구조</td><td>한 줄에 JSON 객체 하나</td><td>행·열 표 형태</td></tr>
+            <tr><td>tags 같은 list</td><td>자연스럽게 표현</td><td>쉼표 문자열로 변환 필요</td></tr>
+            <tr><td>한 줄씩 읽기</td><td>쉬움</td><td>쉬움</td></tr>
+            <tr><td>사람/Excel 확인</td><td>CSV보다 불편</td><td>편함</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p><b>한 문장:</b> 프로그램 내부에서는 Python 객체 구조와 잘 맞는 JSONL을 쓰고, 사람이나 다른 프로그램과 주고받을 때는 표 형태의 CSV를 씁니다.</p>
+    </div>
+
+    <div class="grid two" style="margin-top:14px">
+      <div class="card">
+        <h3>update / delete 안전 처리</h3>
+        <pre>temp_path = self.file_path.with_suffix('.tmp')
+...
+temp_path.replace(self.file_path)</pre>
+        <p>원본 파일을 바로 조금씩 고치는 대신 임시 파일을 처음부터 끝까지 만든 후 교체합니다.</p>
+        <p><b>효과:</b> 중간에 실패했을 때 원본을 바로 망가뜨릴 위험을 줄입니다.</p>
+      </div>
+      <div class="card">
+        <h3>카테고리 삭제 안전 처리</h3>
+        <p>CategoryService는 삭제 전에 transactions를 확인합니다.</p>
+        <pre>for transaction in self.transaction_repository.iter_transactions():
+    if transaction.category == category_name:
+        raise ValueError('사용 중인 카테고리는 삭제할 수 없습니다.')</pre>
+        <p>기존 거래가 가리키는 카테고리를 갑자기 없애지 않습니다.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="verification">
+    <div class="section-title">
+      <div class="section-no">8</div>
+      <div><h2>동작 검증 기록</h2><p class="subtitle">코드만 읽은 것이 아니라 자동 테스트와 실제 CLI 동작을 함께 확인했습니다.</p></div>
+    </div>
+    <div class="grid two">
+      <div class="card">
+        <h3>자동 테스트</h3>
+        <pre>python -m unittest discover -s tests -v
+
+Ran 12 tests in 0.170s
+OK</pre>
+      </div>
+      <div class="card">
+        <h3>실제 CLI 확인</h3>
+        <div class="checks">
+          <div class="check"><b>✓</b><span>add → 실제 JSONL 저장</span></div>
+          <div class="check"><b>✓</b><span>list / search / summary</span></div>
+          <div class="check"><b>✓</b><span>budget + 초과 표시</span></div>
+          <div class="check"><b>✓</b><span>사용 중 category 삭제 방지</span></div>
+          <div class="check"><b>✓</b><span>update 15,000 → 20,000 반영 확인</span></div>
+          <div class="check"><b>✓</b><span>delete 후 “저장된 거래가 없습니다” 확인</span></div>
+          <div class="check"><b>✓</b><span>CSV export 내용 확인</span></div>
+          <div class="check"><b>✓</b><span>CSV import 후 list 재확인</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="scale">
+    <div class="section-title">
+      <div class="section-no">9</div>
+      <div><h2>거래가 10만 건으로 늘어나면?</h2><p class="subtitle">현재 구조의 장점과 한계를 구분해서 설명합니다.</p></div>
+    </div>
+    <div class="table-wrap card" style="padding:0">
+      <table>
+        <thead><tr><th>현재 방식</th><th>10만 건에서 생길 수 있는 문제</th><th>개선 방향</th></tr></thead>
+        <tbody>
+          <tr><td>search가 파일 처음부터 끝까지 확인</td><td>검색 1회마다 최대 10만 건 비교</td><td>날짜/카테고리 인덱스, SQLite</td></tr>
+          <tr><td>검색 결과를 deque에 모아 최신순 출력</td><td>일치 결과가 많으면 그만큼 메모리 증가</td><td>limit·pagination, 역방향 읽기, DB ORDER BY + LIMIT</td></tr>
+          <tr><td>update/delete 시 전체 JSONL 재작성</td><td>데이터가 많을수록 수정 1건에도 전체 파일 쓰기</td><td>SQLite의 id 기반 UPDATE/DELETE</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout">
+      <strong>왜 지금은 파일 구조를 사용하나?</strong><br>
+      이 프로그램은 파일 입출력, JSONL, Generator, Service/Repository 구조를 학습하기 위한 작은 콘솔 서비스입니다.
+      현재 규모에서는 구조가 단순하고 학습 목적에 잘 맞습니다. 데이터가 크게 늘어나는 시점에는 Repository만 데이터베이스 방식으로 교체하는 방향이 자연스럽습니다.
+    </div>
+  </section>
+
+  <section id="quick">
+    <div class="section-title">
+      <div class="section-no">10</div>
+      <div><h2>5분 기능 데모 순서</h2><p class="subtitle">명령어를 외우지 않고 위 복사 버튼을 이용해 핵심 동작만 빠르게 보여주는 순서입니다.</p></div>
+    </div>
+    <div class="card">
+      <div class="flow">
+        <div class="step"><b>1. --help</b><small>10개 명령 구조 확인</small></div><div class="flow-arr">→</div>
+        <div class="step"><b>2. add</b><small>거래 1건 저장 + ID 확인</small></div><div class="flow-arr">→</div>
+        <div class="step"><b>3. list</b><small>방금 저장된 거래 확인</small></div><div class="flow-arr">→</div>
+        <div class="step"><b>4. summary</b><small>수입·지출·잔액 확인</small></div>
+      </div>
+      <div class="flow">
+        <div class="step"><b>5. update</b><small>ID로 금액 변경</small></div><div class="flow-arr">→</div>
+        <div class="step"><b>6. category 보호</b><small>사용 중 카테고리 삭제 방지</small></div><div class="flow-arr">→</div>
+        <div class="step"><b>7. export/import</b><small>CSV 교환 확인</small></div><div class="flow-arr">→</div>
+        <div class="step"><b>8. 테스트</b><small>12 tests OK</small></div>
+      </div>
+      <p class="mini">데모 데이터가 실제 data와 섞이는 것이 걱정되면 <b>--data-dir test_data/demo</b>를 사용하세요.</p>
+    </div>
+  </section>
+
+  <footer>
+    B2-1 프로그램 기술 설명서 · 최신 main 코드 및 README 기준 · 2026-09-16
+  </footer>
+</main>
+
+<div id="toast">복사했습니다.</div>
+
+<script>
+const toast = document.getElementById('toast');
+
+function showToast(text='복사했습니다.') {
+  toast.textContent = text;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 1300);
+}
+
+async function copyText(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast();
+  } catch (e) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    ta.remove();
+    showToast();
+  }
+}
+
+document.querySelectorAll('[data-copy]').forEach(btn => {
+  btn.addEventListener('click', () => copyText(btn.dataset.copy));
+});
+
+document.querySelectorAll('.tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.flow-panel').forEach(x => x.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.target).classList.add('active');
+  });
+});
+
+const txid = document.getElementById('txid');
+const updatePreview = document.getElementById('updatePreview');
+const deletePreview = document.getElementById('deletePreview');
+
+function refreshIdPreview() {
+  const id = txid.value.trim() || '[실제 ID]';
+  updatePreview.textContent = `python -m budget_app update --id ${id}`;
+  deletePreview.textContent = `python -m budget_app delete --id ${id}`;
+}
+txid.addEventListener('input', refreshIdPreview);
+
+function copyBuilt(kind) {
+  const id = txid.value.trim();
+  if (!id) {
+    showToast('먼저 실제 거래 ID를 붙여 넣으세요.');
+    txid.focus();
+    return;
+  }
+  const cmd = `python -m budget_app ${kind} --id ${id}`;
+  copyText(cmd);
+}
+
+function openAllDetails() {
+  document.querySelectorAll('details').forEach(d => d.open = true);
+  showToast('모든 접기 영역을 펼쳤습니다.');
+}
+function closeAllDetails() {
+  document.querySelectorAll('details').forEach(d => d.open = false);
+  showToast('모든 접기 영역을 접었습니다.');
+}
+
+</script>
+</body>
+</html>
