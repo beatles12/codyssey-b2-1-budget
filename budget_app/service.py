@@ -1,6 +1,7 @@
 from calendar import monthrange
-from collections import defaultdict, deque
+from collections import defaultdict
 from collections.abc import Iterator
+from heapq import nlargest
 from uuid import uuid4
 
 from budget_app.models import Transaction
@@ -57,10 +58,19 @@ class TransactionService:
             return '카테고리는 비워둘 수 없습니다.'
         return None
 
-    # 검색 날짜 형식을 검사한다.
-    def _validate_search_date(self, date: str) -> None:
+    
+    # 날짜 입력의 오류 메시지를 돌려준다.
+    def get_date_validation_error(self, date: str) -> str | None:
         if not _is_valid_date(date):
-            raise ValueError('날짜 형식이 올바르지 않습니다. YYYY-MM-DD 형식으로 입력해주세요.')
+            return '날짜 형식이 올바르지 않습니다. YYYY-MM-DD 형식으로 입력해주세요.'
+        return None
+
+    # 잘못된 날짜이면 예외를 발생시킨다.
+    def validate_date(self, date: str) -> None:
+        error = self.get_date_validation_error(date)
+        if error:
+            raise ValueError(error)
+    
 
     # 월 입력 형식을 검사한다.
     def _validate_month(self, month: str) -> None:
@@ -97,16 +107,18 @@ class TransactionService:
         self.repository.add(transaction)
         return transaction
 
-    # 최근 거래를 지정한 수만큼 돌려준다.
+
+    # 거래 날짜 기준 최신순으로 지정한 수만큼 돌려준다.
     def list_transactions(self, limit: int = 20) -> list[Transaction]:
         if limit <= 0:
             raise ValueError('조회 개수는 1 이상이어야 합니다.')
 
-        recent_transactions = deque(maxlen=limit)
-        for transaction in self.repository.iter_transactions():
-            recent_transactions.append(transaction)
+        return nlargest(
+            limit,
+            self.repository.iter_transactions(),
+            key=lambda transaction: transaction.date,
+        )
 
-        return list(reversed(recent_transactions))
 
     # 조건에 맞는 거래를 최신순으로 돌려준다.
     def search_transactions(
@@ -118,16 +130,19 @@ class TransactionService:
         query: str | None = None,
         tag: str | None = None,
     ) -> Iterator[Transaction]:
+
         if date_from:
-            self._validate_search_date(date_from)
+            self.validate_date(date_from)
         if date_to:
-            self._validate_search_date(date_to)
+            self.validate_date(date_to)
         if date_from and date_to and date_from > date_to:
             raise ValueError('시작 날짜는 끝 날짜보다 늦을 수 없습니다.')
         if transaction_type and transaction_type not in ('income', 'expense'):
             raise ValueError('검색 타입은 income 또는 expense만 가능합니다.')
 
-        matches = deque()
+
+        matches = []
+
         for transaction in self.repository.iter_transactions():
             if date_from and transaction.date < date_from:
                 continue
@@ -141,10 +156,15 @@ class TransactionService:
                 continue
             if tag and tag not in transaction.tags:
                 continue
+
             matches.append(transaction)
 
-        while matches:
-            yield matches.pop()
+        for transaction in sorted(
+            matches,
+            key=lambda item: item.date,
+            reverse=True,
+        ):
+            yield transaction
 
     # 월별 수입과 지출 및 상위 카테고리를 계산한다.
     def summarize_month(self, month: str, top: int = 3) -> dict:

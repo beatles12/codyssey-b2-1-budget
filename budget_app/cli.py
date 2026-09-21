@@ -136,9 +136,21 @@ def run_cli() -> None:
     budget_service = BudgetService(budget_repository)
     csv_service = CsvService(transaction_repository, category_repository)
     if args.command == 'add':
-        date_text = input('날짜(Enter=오늘 / 예: 20260914): ').strip()
-        date = normalize_date_input(date_text)
+        
+        while True:
+            date_text = input('날짜(Enter=오늘 / 예: 2026-09-21): ').strip()
+            date = normalize_date_input(date_text)
+
+            error = transaction_service.get_date_validation_error(date)
+            if error:
+                print(f'[입력 오류] {error}')
+                print('[힌트] 예: 2026-09-21')
+                continue
+
+            break
+
         transaction_type = choose_transaction_type()
+
         category = choose_category(category_repository)
         amount_text = input('금액(양수): ').strip()
         amount = parse_amount(amount_text)
